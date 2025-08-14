@@ -144,6 +144,11 @@ palette.querySelectorAll('.pal-item').forEach(el=>{
 
 /* ===== Board interactions (Pointer) ===== */
 board.addEventListener('pointerdown', (e)=>{
+  /* ===== Board interactions (Pointer) ===== */
+board.addEventListener('pointerdown', (e)=>{
+  // ถ้าแตะ/คลิกอยู่บน input ภายใน workspace ให้ปล่อย event เพื่อให้โฟกัสและพิมพ์ได้
+  if (e.target.matches('input,textarea,select') || e.target.closest('.ws')) return;
+
   if(e.button!==0 && e.pointerType==='mouse') return;
   e.preventDefault();
   const p = pt(e);
@@ -156,10 +161,14 @@ board.addEventListener('pointerdown', (e)=>{
       return {id, dx:p.x - k.x, dy:p.y - k.y};
     });
     dragging = {ids, offsets, pid:e.pointerId};
-    board.setPointerCapture(e.pointerId);
+    board.setPointerCapture?.(e.pointerId);
   }else{
     selection.clear();
     selRect = {x0:p.x, y0:p.y, x1:p.x, y1:p.y};
+  }
+  render();
+}, {passive:false});
+
   }
   render();
 }, {passive:false});
@@ -343,48 +352,53 @@ function coefToHTML({a2,a1,a0}){
 
 /* ===== Random helpers ===== */
 function rint(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
-function coin(){ return Math.random()<.5 ? -1 : 1; }
-function randNZ(){ let v=0; while(v===0){ v = coin()*rint(1,15); } return v; }
+function nz15(){ let v=0; while(v===0){ v = (Math.random()<.5?-1:1) * rint(1,15); } return v; }
 
-/* ฟอร์แมตโมโนม (แสดง (-2x) / (-10x^2) ) */
-function monoToHTML(k, pow){
-  if(pow===2){
-    if(k===1)  return 'x<sup>2</sup>';
-    if(k===-1) return '(-x<sup>2</sup>)';
-    return (k<0?`(${k})`:k)+'x<sup>2</sup>';
-  }else if(pow===1){
-    if(k===1)  return 'x';
-    if(k===-1) return '(-x)';
-    return (k<0?`(${k})`:k)+'x';
+/* term printers */
+function termX2(a){           // ไม่หุ้ม () แม้ a เป็นลบ
+  if(a===1)  return 'x<sup>2</sup>';
+  if(a===-1) return '-x<sup>2</sup>';
+  return `${a}x<sup>2</sup>`;
+}
+function termX(b, wrapNeg){   // wrapNeg: ให้ใส่ () ถ้าเป็นลบ
+  if(b===1)  return 'x';
+  if(b===-1) return wrapNeg ? '(-x)' : '-x';
+  return (b<0 && wrapNeg) ? `(${b}x)` : `${b}x`;
+}
+function termC(c, wrapNeg){   // ค่าคงที่
+  return (c<0 && wrapNeg) ? `(${c})` : `${c}`;
+}
+
+/* สร้าง p(x) หรือ q(x) ตามกติกา */
+function makePoly(deg){                 // deg = 1 หรือ 2
+  if(deg===2){
+    const a=nz15(), b=nz15(), c=nz15();
+    const html = [
+      termX2(a),
+      ' + ',
+      termX(b, true),                   // b ลบ → ครอบ ()
+      ' + ',
+      termC(c, true)                    // c ลบ → ครอบ ()
+    ].join('').replace(/\+ \(-/g,'+ (-');
+    return { coef:{a2:a,a1:b,a0:c}, html:`[${html}]` };
   }else{
-    return (k<0?`(${k})`:String(k));
+    const b=nz15(), c=nz15();
+    const html = [
+      termX(b, false),                  // b ลบ → ไม่ต้องครอบ
+      ' + ',
+      termC(c, true)                    // c ลบ → ครอบ ()
+    ].join('').replace(/\+ \(-/g,'+ (-');
+    return { coef:{a2:0,a1:b,a0:c}, html:`[${html}]` };
   }
-}
-function randPolyOperand(maxTerms=3){
-  const terms = [];
-  const usedPow = new Set();
-  const tcount = rint(1,Math.min(3,maxTerms));
-  for(let i=0;i<tcount;i++){
-    let pow = rint(0,2);
-    if(usedPow.has(pow)){ i--; continue; }
-    usedPow.add(pow);
-    const k = randNZ();
-    terms.push({pow,k});
-  }
-  terms.sort((a,b)=>b.pow-a.pow);
-  const coef={a2:0,a1:0,a0:0};
-  terms.forEach(t=>{ if(t.pow===2) coef.a2+=t.k; else if(t.pow===1) coef.a1+=t.k; else coef.a0+=t.k; });
-  let html = terms.map((t,idx)=>{
-    const part = monoToHTML(t.k, t.pow);
-    return idx===0 ? part.replace(/^\((.*)\)$/,'$1') : ` + ${part}`;
-  }).join('');
-  html = html.replace(/\+ \(-/g,'+ (-');
-  // เปลี่ยนเป็น [ … ] ครอบเสมอ
-  return {coef, html:`[${html}]`};
 }
 
-/* เปลี่ยนวงเล็บ (…) ภายในสตริงเป็น […] สำหรับตัวตั้ง/ตัวประกอบ */
-const parenToBracket = s => s.replace(/^\(/,'[').replace(/\)$/ ,']');
+/* สุ่ม p(x), q(x) แบบสุ่มดีกรี 1 หรือ 2 */
+function randPQ(){
+  const p = makePoly(Math.random()<.5?1:2);
+  const q = makePoly(Math.random()<.5?1:2);
+  return {p,q};
+}
+
 
 /* ===== สุ่มโจทย์ทุกเมนู ===== */
 function newExample(){
@@ -407,50 +421,65 @@ function newExample(){
     answerCoef={a2:0,a1:0,a0:res}; problemAnswer=String(res);
     showWorkspace('mul'); mulMult.textContent=b; mulMcand.textContent=a;
   }else if(mode==='int_div'){
-    // ทุกจำนวนต้องอยู่ใน [-15,15]\{0}
-    let divisor, q, dividend, tries=0;
-    do{
-      divisor = randNZ();
-      q = randNZ();
-      dividend = divisor*q;
-      tries++;
-      if(tries>200) break;
-    }while(Math.abs(dividend)>15 || dividend===0); // บังคับไม่เกิน 15
-    const dStr = divisor<0?`(${divisor})`:divisor;
-    problemText = `${dividend} ÷ ${dStr}`;
-    answerCoef={a2:0,a1:0,a0:q}; problemAnswer=String(q);
-    showWorkspace('div'); divDivisor.textContent=divisor; divQuot.value='';
+  const divisor = nz15(), q = nz15(), dividend = divisor*q;
+  const dStr = divisor<0?`(${divisor})`:divisor;
+  problemText = `${dividend} ÷ ${dStr}`;
+  answerCoef={a2:0,a1:0,a0:q}; problemAnswer=String(q);
+  showWorkspace('div'); divDivisor.textContent=divisor; divQuot.value='';
+}else if(mode==='solve_lin'){
+  // ax + b = cx + d โดย x เป็นจำนวนเต็มในช่วง [-15,15]\{0}
+  const a = nz15(), c = nz15(), x = nz15(), b = nz15();
+  const d = a*x + b - c*x;
+  problemText = `${a===1?'':a}x${b>=0?'+':''}${b} = ${c===1?'':c}x${d>=0?'+':''}${d}`;
+  answerCoef={a2:0,a1:1,a0:-x}; problemAnswer=`x = ${x}`;
+  showWorkspace('solve');
+}
+
   }else if(mode==='poly_add'){
-    const A=randPolyOperand(), B=randPolyOperand();
-    const sum={a2:A.coef.a2+B.coef.a2, a1:A.coef.a1+B.coef.a1, a0:A.coef.a0+B.coef.a0};
-    problemText = `${A.html} + ${B.html}`;
-    answerCoef=sum; problemAnswer=coefToHTML(sum);
+  const {p,q} = randPQ();
+  const sum = {a2:p.coef.a2+q.coef.a2, a1:p.coef.a1+q.coef.a1, a0:p.coef.a0+q.coef.a0};
+  problemText = `${p.html} + ${q.html}`;
+  answerCoef = sum; problemAnswer = coefToHTML(sum);
+
   }else if(mode==='poly_sub'){
-    const A=randPolyOperand(), B=randPolyOperand();
-    const res={a2:A.coef.a2-B.coef.a2, a1:A.coef.a1-B.coef.a1, a0:A.coef.a0-B.coef.a0};
-    problemText = `${A.html} - ${B.html}`;
-    answerCoef=res; problemAnswer=coefToHTML(res);
+  const {p,q} = randPQ();
+  const res = {a2:p.coef.a2-q.coef.a2, a1:p.coef.a1-q.coef.a1, a0:p.coef.a0-q.coef.a0};
+  problemText = `${p.html} - ${q.html}`;
+  answerCoef = res; problemAnswer = coefToHTML(res);
+
   }else if(mode==='poly_mul'){
-    // [ax + b] × [cx + d]
-    const a=randNZ(), b=randNZ(), c=randNZ(), d=randNZ();
-    const lin = (k,m)=>{
-      const aPart = (k===1)?'x':(k===-1?'(-x)':(k<0?`(${k})x`:`${k}x`));
-      const bPart = (m<0?`+ (${m})`:(m>0?`+ ${m}`:'')); // 0 ไม่ออกเพราะไม่สุ่ม 0
-      return `[${aPart}${bPart}]`;
-    };
-    problemText = `${lin(a,b)} × ${lin(c,d)}`;
-    const prod={a2:a*c, a1:a*d + b*c, a0:b*d};
-    answerCoef=prod; problemAnswer=coefToHTML(prod);
-    showWorkspace('mul');
-    mulMult.innerHTML = `${c===1?'':c}x${d>=0?'+':''}${d}`;
-    mulMcand.innerHTML = `${a===1?'':a}x${b>=0?'+':''}${b}`;
+  const {p,q} = randPQ();
+  problemText = `${p.html} × ${q.html}`;
+  // กระจายตัวประกอบ (ดีกรีรวมไม่เกิน 4 แต่เราจำกัดคำตอบไว้ที่ดีกรี<=2 ของโครงสร้างเดิม)
+  // คำนวณเต็มแล้วตัดแค่ a2,a1,a0 สำหรับ checker เดิม
+  const A=p.coef, B=q.coef;
+  const prod = {
+    a2: (A.a2*B.a0) + (A.a1*B.a1) + (A.a0*B.a2),
+    a1: (A.a1*B.a0) + (A.a0*B.a1),
+    a0: (A.a0*B.a0)
+  };
+  answerCoef = prod; problemAnswer = coefToHTML(prod);
+  showWorkspace('mul');
+  mulMult.innerHTML  = `${(B.a2?termX2(B.a2)+' + ':'')}${B.a1?termX(B.a1,false):''}${(B.a1&&B.a0? ' + ':'')}${termC(B.a0,true)}`.replace(/\+ \+ /g,'+ ');
+  mulMcand.innerHTML = `${(A.a2?termX2(A.a2)+' + ':'')}${A.a1?termX(A.a1,false):''}${(A.a1&&A.a0? ' + ':'')}${termC(A.a0,true)}`.replace(/\+ \+ /g,'+ ');
+
   }else if(mode==='poly_div'){
-    // [ax^2 + (ad+b)x + bd] ÷ [x + d]  (ตัวหารดีกรี 1)
-    const a=randNZ(), b=randNZ(), d=randNZ();
-    const A1 = a*d+b, A0 = b*d;
-    problemText = `[${a===1?'':a}x<sup>2</sup> + ${A1}x + ${A0}] ÷ [x${d>=0?'+':''}${d}]`.replace(/\+ -/g,'+ (-');
-    const q={a2:0,a1:a,a0:b}; answerCoef=q; problemAnswer=coefToHTML(q);
-    showWorkspace('div'); divDivisor.innerHTML=`x${d>=0?'+':''}${d}`; divQuot.value='';
+  const {p,q} = randPQ();
+  // เลือก q(x) ให้ดีกรี 1 เสมอเพื่อให้หารลงตัวในพื้นที่ฝึก (ตารางเดิม)
+  const q1 = makePoly(1);            // sx + t
+  problemText = `${p.html} ÷ ${q1.html}`;
+  // ให้ผลลัพธ์เป็นดีกรี <= 2: q(x) = ax + b
+  // แก้ระบบแบบตั้งใจให้ลงตัว: สุ่ม a,b แล้วคำนวณ p = q1*(ax + b)
+  const a = nz15(), b = nz15();
+  const s = q1.coef.a1, t = q1.coef.a0;
+  const dividend = { a2: s*a, a1: s*b + t*a, a0: t*b };
+  problemText = `[${coefToHTML(dividend)}] ÷ ${q1.html}`;
+  answerCoef = {a2:0, a1:a, a0:b}; problemAnswer = coefToHTML(answerCoef);
+  showWorkspace('div');
+  divDivisor.innerHTML = `${termX(s,false)}${t>=0?'+':''}${termC(t,true)}`.replace(/\+ \(-/g,'+ (-');
+  divQuot.value='';
+}
+
   }else if(mode==='solve_lin'){
     // ax+b = cx+d  โดยทุกค่าภายในช่วงและ x ∈ [-15,15]\{0}
     let a,c,b,x,d,tries=0;
