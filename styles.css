@@ -82,3 +82,32 @@ body{
   .row input[type=text]{min-width:12rem}
   .table2x2{grid-template-columns:140px 1fr;grid-template-rows:140px 1fr}
 }
+/* ====== touch & input fix ====== */
+.board{ touch-action:none; }
+.tile{  touch-action:none; }
+.board *{ touch-action:none; }          /* ป้องกันหน้าเลื่อนเมื่อจับ tile */
+.ws input, .ws select, .ws textarea{
+  touch-action:auto;                     /* ยอมให้แตะ/พิมพ์ได้ */
+  pointer-events:auto;
+  position:relative;
+  z-index:5;
+}
+
+/* ====== ปรับพื้นที่กระเบื้องพีชคณิตบนมือถือ ====== */
+@media (max-width: 900px){
+  .wrap{ flex-direction:column; }        /* ย้ายกระเบื้องลงล่าง */
+  .palette{
+    width:100%;
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap:.5rem;
+    padding:10px 12px;
+  }
+  .pal-item{ margin-bottom:0; }
+  .board-wrap{
+    min-height:60vh;                     /* ให้กระดานสูงพอ */
+  }
+}
+
+/* ย่อความกว้างปกติลงเล็กน้อย (เดสก์ท็อป) */
+.palette{ width:220px; }
