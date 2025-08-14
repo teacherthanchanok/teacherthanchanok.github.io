@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="toolbar">
-    <strong style="font-size:1.15rem">Algebra Tiles by Kru Zack</strong>
+    <strong class="brand">Algebra Tiles by Kru Zack</strong>
     <button class="btn" id="btn-reset">จัดระเบียบ</button>
     <button class="btn" id="btn-delete">ลบ</button>
     <button class="btn" id="btn-flip">พลิกด้าน</button>
@@ -16,10 +16,10 @@
     <button class="btn" id="btn-rotate">หมุน</button>
     <button class="btn" id="btn-duplicate">เพิ่มจำนวน</button>
     <button class="btn" id="btn-solution">เฉลย</button>
-    <span style="margin-left:.5rem"></span>
+
     <button class="btn" id="btn-zoom-out">🔍−</button>
     <button class="btn" id="btn-zoom-in">🔍＋</button>
-    <span style="margin-left:.5rem"></span>
+
     <select id="mode" title="เลือกเมนู">
       <option value="int_add">การบวกจำนวนเต็ม</option>
       <option value="int_sub">การลบจำนวนเต็ม</option>
@@ -31,37 +31,56 @@
       <option value="poly_div">การหารพหุนาม</option>
       <option value="solve_lin">การแก้สมการ</option>
     </select>
-    <button class="btn" id="btn-help" style="margin-left:auto">?</button>
+
+    <button class="btn ml-auto" id="btn-help">?</button>
   </div>
 
   <div class="row">
     <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
-    <div style="font-size:1.4rem;font-weight:700">โจทย์:</div>
-    <div id="problem" style="font-size:1.4rem"></div>
-    <div style="font-size:1.4rem;margin-left:.75rem">=</div>
+    <div class="label">โจทย์:</div>
+    <div id="problem" class="problem"></div>
+    <div class="eq">=</div>
     <input type="text" id="answerInput" placeholder="พิมพ์คำตอบ" />
     <button class="btn btn-inline" id="btn-check">ตรวจสอบคำตอบ</button>
-    <div id="checkResult"></div>
-    <div id="solution" style="margin-left:.75rem"></div>
+    <div id="checkResult" class="check"></div>
+    <div id="solution" class="solution"></div>
   </div>
 
   <div class="wrap">
     <aside class="palette" id="palette">
-      <div style="font-weight:700;margin-bottom:.4rem">อุปกรณ์ (ลากออกได้ไม่จำกัด)</div>
-      <div class="pal-item" data-type="x2"><div class="pal-chip" style="width:24px;height:24px;background:var(--blue)"></div><span>x<sup>2</sup></span></div>
-      <div class="pal-item" data-type="x"><div class="pal-chip" style="width:48px;height:12px;background:var(--green)"></div><span>x</span></div>
-      <div class="pal-item" data-type="one"><div class="pal-chip" style="width:18px;height:18px;background:var(--yellow)"></div><span>1</span></div>
-      <div style="font-size:1rem;color:#6b7280">* จำนวนลบใช้ปุ่ม “พลิกด้าน”</div>
+      <div class="pal-title">กระเบื้องพีชคณิต</div>
+
+      <button class="pal-item" data-type="x2">
+        <div class="pal-chip blue"></div><span>x<sup>2</sup></span>
+      </button>
+      <button class="pal-item" data-type="neg_x2">
+        <div class="pal-chip red"></div><span>-x<sup>2</sup></span>
+      </button>
+
+      <button class="pal-item" data-type="x">
+        <div class="pal-chip green wide"></div><span>x</span>
+      </button>
+      <button class="pal-item" data-type="neg_x">
+        <div class="pal-chip red wide"></div><span>-x</span>
+      </button>
+
+      <button class="pal-item" data-type="one">
+        <div class="pal-chip yellow mini"></div><span>1</span>
+      </button>
+      <button class="pal-item" data-type="neg_one">
+        <div class="pal-chip red mini"></div><span>-1</span>
+      </button>
+
+      <div class="pal-note">* ต้องการจำนวนตรงข้ามใช้ปุ่ม “พลิกด้าน”</div>
     </aside>
 
     <section class="board-wrap">
       <div class="board" id="board">
         <div class="grid"></div>
 
-        <!-- พท.ฝึกแก้สมการ -->
+        <!-- พื้นที่ทำงานสำหรับแต่ละเมนู -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
-        <!-- พท.คูณ (int/poly) -->
         <div class="ws" id="ws-mul">
           <div class="table2x2" id="mul-table">
             <div class="cell" id="mul-op">×</div>
@@ -71,39 +90,45 @@
           </div>
         </div>
 
-        <!-- พท.หาร (int/poly) -->
         <div class="ws" id="ws-div">
           <div class="table2x2">
             <div class="cell" id="div-op">÷</div>
-            <!-- column 2 row 1: ต้องพิมพ์ได้ -->
             <div class="cell">
-              <input id="div-quot" placeholder="?" onmousedown="event.stopPropagation();" ontouchstart="event.stopPropagation();" />
+              <!-- พิมพ์ได้แน่นอน -->
+              <input id="div-quot" placeholder="?" />
             </div>
             <div class="cell" id="div-divisor">?</div>
             <div class="cell"></div>
           </div>
         </div>
-
       </div>
     </section>
   </div>
 
   <!-- Help popup -->
   <div class="modal" id="help" style="display:none">
-    <div class="card">
+    <div class="card" role="dialog" aria-modal="true">
       <button class="close-x" id="help-x" title="ปิด">×</button>
-      <div style="font-weight:800;margin-bottom:.4rem">วิธีใช้งาน Algebra Tiles</div>
-      <ul style="margin:.3rem 1rem;font-size:1.05rem">
+      <div class="h-title">วิธีใช้งาน Algebra Tiles</div>
+      <ul class="help-list">
         <li>ลากชิ้นส่วนจากแถบซ้ายเข้าสู่กระดานได้ไม่จำกัด</li>
-        <li>คลิกค้างแล้วลากบนพื้นที่ว่างเพื่อเลือกคลุมหลายชิ้น</li>
+        <li>คลิก/แตะค้างแล้วลากบนพื้นที่ว่างเพื่อเลือกคลุมหลายชิ้น</li>
         <li>ปุ่ม “พลิกด้าน” เปลี่ยนเป็นค่าตรงข้าม, “จับคู่เป็นศูนย์” ลบคู่ตรงข้าม, “หมุน” ใช้กับสี่เหลี่ยมผืนผ้า, “เพิ่มจำนวน” เพิ่มชิ้นที่เลือกเป็นเท่าตัว</li>
         <li>ปุ่ม “จัดระเบียบ” เคลียร์กระดานและรีเซ็ตซูม</li>
+        <li><b>หากต้องการพิมพ์กำลังสอง ให้พิมพ์</b> <code>x^2</code></li>
       </ul>
-      <div style="position:relative;padding-top:56.25%">
-        <iframe id="help-video" style="position:absolute;inset:0;width:100%;height:100%" src="https://www.youtube.com/embed/mIlSU7jyVCk?si=-Lb3Z5DN-naQjd7Z" title="Algebra Tiles" allowfullscreen></iframe>
+
+      <div class="video-wrap">
+        <iframe id="ytplayer" src="https://www.youtube.com/embed/mIlSU7jyVCk?rel=0" title="Algebra Tiles" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
-      <div class="credit">จัดทำโดย นางสาวธัญชนก แย้มมาก<br/>โรงเรียนบางแม่หม้ายรัฐราษฎร์รังสฤษดิ์</div>
-      <div style="text-align:right;margin-top:.6rem"><button class="btn" id="help-close">ปิด</button></div>
+
+      <div class="credit center">
+        <div>จัดทำโดย นางสาวธัญชนก แย้มมาก</div>
+        <div>โรงเรียนบางแม่หม้ายรัฐราษฎร์รังสฤษดิ์</div>
+      </div>
+      <div class="center">
+        <a class="btn contact" href="https://line.me/ti/p/4X5zjQ9EjJ" target="_blank" rel="noopener">📞 ติดต่อคุณครู</a>
+      </div>
     </div>
   </div>
 
