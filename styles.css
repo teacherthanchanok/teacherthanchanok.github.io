@@ -77,3 +77,11 @@ select{padding:.5rem .65rem;border-radius:.5rem;border:1px solid var(--line);fon
   cursor:pointer; font-weight:600; text-decoration:none;
 }
 .btn-contact:hover{filter:brightness(1.05)}
+/* ป้องกันการเลื่อนหน้าเว็บเวลาลาก tile บนมือถือหรือแท็บเล็ต */
+.board {
+    touch-action: none;
+}
+
+.tile {
+    touch-action: none;
+}
