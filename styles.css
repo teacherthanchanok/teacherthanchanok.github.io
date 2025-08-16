@@ -1,10 +1,9 @@
 /*
-Version: 2025-08-17 r8
-Changelog:
-- ปรับกริดพื้นหลัง (เทาอ่อน) และปิดการเลื่อนแนวนอนทั้งหน้า
-- board/tile ใช้ touch-action:none สำหรับ Pointer Events
-- อินพุตใน cell กว้าง 100% บนมือถือ (แก้ปัญหา column 2 row 1 แคบ)
-- เพิ่ม responsive สำหรับมือถือแนวนอนให้ตาราง 2x2 กระชับขึ้น
+Version: 2025-08-17 r9
+Changelog (from r8):
+- เพิ่มขนาดตัวอักษร select#mode ให้เท่าปุ่ม (.btn)
+- ปรับ responsive ของ workspaces ตารางคูณ/หาร: ให้กล่อง ws เลื่อนแนวนอนได้เมื่อแคบ (แนวทาง responsive-table)
+- ตั้ง min-width ให้ .table2x2 และเปิด inertia scroll (touch)
 */
 :root{
   --purple:#6b21a8; --purple-2:#7c3aed; --ink:#111827; --line:#e5e7eb;
@@ -21,14 +20,13 @@ body{
   font-size:18px;
   overflow-x:hidden;
 
-  /* พื้นหลังกริดสีเทาอ่อน */
   background-size:40px 40px;
   background-image:
     linear-gradient(to right, var(--grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
 }
 
-/* Toolbar: เลื่อนภายใน, หน้าไม่เลื่อน */
+/* Toolbar */
 .toolbar{
   position:sticky;top:0;z-index:10;
   display:flex;align-items:center;gap:.6rem;
@@ -39,7 +37,7 @@ body{
   -webkit-overflow-scrolling:touch;
   scrollbar-width:thin;
 }
-.brand{font-size:.9rem} /* ลดครึ่งหนึ่ง */
+.brand{font-size:.9rem}
 .btn{
   border:0;border-radius:.7rem;padding:.55rem 1rem;
   background:linear-gradient(180deg,#bbd0ff,#b8c0ff);color:#000;
@@ -47,6 +45,16 @@ body{
 }
 .btn:hover{filter:brightness(.96)}
 .help-btn{margin-left:auto}
+
+/* ทำให้ select ดูเท่ากับปุ่ม */
+.toolbar select#mode{
+  font-size:1.05rem;
+  padding:.55rem 1rem;
+  border-radius:.7rem;
+  border:0;
+  background:#e5e7ff;
+  color:#000;
+}
 
 /* โซนโจทย์ */
 .row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
@@ -87,10 +95,23 @@ body{
 .selected{outline:3px solid var(--purple-2)}
 .sel-rect{position:absolute;border:2px dashed var(--purple-2);background:rgba(124,58,237,.1)}
 
-/* Workspaces */
-.ws{position:absolute;left:40px;top:40px;right:40px;bottom:40px;border:3px solid #cbd5e1;background:#f8fafc;border-radius:10px;display:none;}
+/* Workspaces + Responsive table approach */
+.ws{
+  position:absolute;left:40px;top:40px;right:40px;bottom:40px;
+  border:3px solid #cbd5e1;background:#f8fafc;border-radius:10px;display:none;
+  /* เมื่อจอแคบให้เลื่อนแนวนอนได้ (แนวคิด responsive-table) */
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+}
 .ws .midline{position:absolute;top:20px;bottom:20px;left:50%;width:3px;background:#94a3b8}
-.table2x2{position:absolute;left:40px;top:80px;right:40px;bottom:40px;border:3px solid #94a3b8;border-radius:8px;display:grid;grid-template-columns:180px 1fr;grid-template-rows:160px 1fr;background:#fff}
+
+/* ตาราง 2x2 แบบ Grid */
+.table2x2{
+  position:absolute;left:40px;top:80px;right:40px;bottom:40px;
+  border:3px solid #94a3b8;border-radius:8px;
+  display:grid;grid-template-columns:180px 1fr;grid-template-rows:160px 1fr;background:#fff;
+  min-width:560px; /* ให้มีความกว้างขั้นต่ำสำหรับเลื่อน */
+}
 .cell{border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;padding:.25rem}
 .cell input{font-size:1.15rem;padding:.4rem .5rem;border:1px solid #cbd5e1;border-radius:.4rem;width:100%;max-width:100%;min-width:0;background:#fff;color:#111}
 
@@ -106,7 +127,7 @@ body{
 .contact-row{display:flex;justify-content:center;margin-top:.6rem}
 .contact{display:inline-block}
 
-/* Responsive (โฟกัส Medium Mobile) */
+/* Responsive */
 @media (max-width: 900px){
   .wrap{flex-direction:column}
   .palette{width:100%; order:2}
@@ -117,9 +138,8 @@ body{
   .pal-item{padding:.45rem}
   .row input[type=text]{min-width:12rem}
 }
-
-/* มือถือแนวนอน / หน้าต่างเตี้ย: กระชับตารางและขยาย input cell */
+/* มือถือแนวนอน / หน้าต่างเตี้ย: กระชับตารางและพิมพ์อ่านง่าย */
 @media (orientation: landscape) and (max-height: 520px){
-  .table2x2{grid-template-columns:140px 1fr;grid-template-rows:120px 1fr}
+  .table2x2{grid-template-columns:140px 1fr;grid-template-rows:120px 1fr;min-width:480px}
   .cell{font-size:1.05rem}
 }
