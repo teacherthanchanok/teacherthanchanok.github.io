@@ -1,3 +1,10 @@
+<!--
+Version: 2025-08-17 r10
+Changelog (from r9):
+- เปลี่ยนโครงสร้างตารางคูณ/หารเป็น <div> (display:table/row/cell)
+- รักษา id เดิม (mul-op, mul-mult, mul-mcand, div-op, div-divisor, div-quot)
+- พื้นที่แถวโจทย์/อินพุตคงเดิม
+-->
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -7,9 +14,8 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="toolbar">
+  <div class="toolbar" id="toolbar">
     <strong class="brand">Algebra Tiles by Kru Zack</strong>
-
     <button class="btn" id="btn-reset">จัดระเบียบ</button>
     <button class="btn" id="btn-delete">ลบ</button>
     <button class="btn" id="btn-flip">พลิกด้าน</button>
@@ -17,10 +23,10 @@
     <button class="btn" id="btn-rotate">หมุน</button>
     <button class="btn" id="btn-duplicate">เพิ่มจำนวน</button>
     <button class="btn" id="btn-solution">เฉลย</button>
-    <button class="btn" id="btn-zoom-out">🔍−</button>
-    <button class="btn" id="btn-zoom-in">🔍＋</button>
+    <button class="btn" id="btn-zoom-out" title="ซูมออก">🔍−</button>
+    <button class="btn" id="btn-zoom-in"  title="ซูมเข้า">🔍＋</button>
 
-    <select id="mode" title="เลือกเมนู" class="menu-select">
+    <select id="mode" title="เลือกเมนู">
       <option value="int_add">การบวกจำนวนเต็ม</option>
       <option value="int_sub">การลบจำนวนเต็ม</option>
       <option value="int_mul">การคูณจำนวนเต็ม</option>
@@ -35,19 +41,21 @@
     <button class="btn help-btn" id="btn-help">?</button>
   </div>
 
-  <div class="row">
+  <!-- แถวโจทย์ (พื้นหลังขาวเสมอ) -->
+  <div class="row row-top">
     <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
     <div class="lbl">โจทย์:</div>
     <div id="problem" class="prob"></div>
     <div class="eq">=</div>
     <input type="text" id="answerInput" placeholder="พิมพ์คำตอบ" />
     <button class="btn btn-inline" id="btn-check">ตรวจสอบคำตอบ</button>
-    <div id="checkResult"></div>
+    <div id="checkResult" class="check-msg"></div>
     <div id="solution" class="solution"></div>
   </div>
 
-  <div class="row">
-    <input type="text" id="reformatBox" class="reformat" placeholder="จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง">
+  <!-- แถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" -->
+  <div class="row row-normalize">
+    <input id="normalizeInput" type="text" placeholder="จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" />
   </div>
 
   <div class="wrap">
@@ -64,41 +72,36 @@
 
     <section class="board-wrap">
       <div class="board" id="board">
-        <div class="grid"></div>
-
-        <!-- Solve workspace -->
+        <!-- Workspaces -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
-        <!-- Multiply workspace (div-based table) -->
+        <!-- ตารางคูณจำนวนเต็ม / คูณพหุนาม -->
         <div class="ws" id="ws-mul">
-          <div class="table-like" id="mul-table">
-            <div class="table-row">
-              <div class="cell cell-op"    id="mul-op">×</div>
-              <div class="cell"            id="mul-mult">?</div>
+          <div class="dtbl" id="mul-table">
+            <div class="drow">
+              <div class="dcell" id="mul-op">×</div>
+              <div class="dcell" id="mul-mult">?</div>
             </div>
-            <div class="table-row">
-              <div class="cell"            id="mul-mcand">?</div>
-              <div class="cell"></div>
+            <div class="drow">
+              <div class="dcell" id="mul-mcand">?</div>
+              <div class="dcell"></div>
             </div>
           </div>
         </div>
 
-        <!-- Divide workspace (div-based table) -->
+        <!-- ตารางหารจำนวนเต็ม / หารพหุนาม -->
         <div class="ws" id="ws-div">
-          <div class="table-like" id="div-table">
-            <div class="table-row">
-              <div class="cell cell-op" id="div-op">÷</div>
-              <div class="cell">
-                <input id="div-quot" placeholder="?" />
-              </div>
+          <div class="dtbl" id="div-table">
+            <div class="drow">
+              <div class="dcell" id="div-op">÷</div>
+              <div class="dcell"><input id="div-quot" placeholder="?" /></div>
             </div>
-            <div class="table-row">
-              <div class="cell" id="div-divisor">?</div>
-              <div class="cell"></div>
+            <div class="drow">
+              <div class="dcell" id="div-divisor">?</div>
+              <div class="dcell"></div>
             </div>
           </div>
         </div>
-
       </div>
     </section>
   </div>
