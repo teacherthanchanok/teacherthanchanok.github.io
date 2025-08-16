@@ -1,9 +1,10 @@
 /*
-Version: 2025-08-16-fullrules-pe2
+Version: 2025-08-17-resp-pe3
 Changelog:
-- Pointer-friendly: touch-action: none บนกระดาน/ไทล์
-- พื้นหลังเป็นกริดสีเทาอ่อน 40px
-- ปรับอินพุตในตารางให้กว้าง 100% สำหรับมือถือ
+- กริดพื้นหลัง 40px สีเทาอ่อน
+- touch-action:none บน .board/.tile เพื่อกันหน้าลื่น/ซูมระหว่างลาก
+- ปรับอินพุตตารางหารให้กว้าง 100% บนมือถือ
+- แถวโจทย์/normalize พื้นหลังขาว แยกบรรทัด
 */
 :root{
   --purple:#6b21a8; --purple-2:#7c3aed; --ink:#111827; --line:#e5e7eb;
@@ -19,14 +20,14 @@ body{
   color:#111;
   font-size:18px;
 
-  /* กริดสีเทาอ่อน */
+  /* พื้นหลังกริด */
   background-size: 40px 40px;
   background-image:
     linear-gradient(to right, var(--grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
 }
 
-/* แถบบน */
+/* Toolbar */
 .toolbar{
   position:sticky;top:0;z-index:10;
   display:flex;align-items:center;gap:.6rem;
@@ -41,7 +42,7 @@ body{
 .btn:hover{filter:brightness(.96)}
 .help-btn{margin-left:auto}
 
-/* โซนโจทย์ด้านบนพื้นหลังขาว */
+/* โซนโจทย์ (พื้นหลังขาว) */
 .row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
 .row-top{
   padding:.7rem .9rem;border-bottom:1px solid var(--line);
@@ -56,10 +57,11 @@ body{
 .solution{margin-left:.6rem}
 .check-msg{min-width:6.5rem}
 
-/* กล่อง “จัดรูปสมการใหม่” */
+/* แถว normalize */
 .row-normalize{padding:.25rem .9rem .7rem;background:#fff;border-bottom:1px solid var(--line)}
 #normalizeInput{width:100%;max-width:1100px;border:1px solid var(--line);border-radius:.5rem;padding:.5rem .65rem;font-size:1.05rem;background:#fff;color:#111}
 
+/* Layout */
 .wrap{display:flex;min-height:calc(100vh - 160px);}
 .palette{
   width:220px;border-right:1px solid var(--line);padding:12px;background:#f9fafb
@@ -82,7 +84,7 @@ body{
 .board-wrap{position:relative;flex:1;overflow:hidden}
 .board{
   position:absolute;inset:0;transform-origin:0 0;
-  touch-action: none; /* ปิด scroll/zoom บนกระดาน */
+  touch-action: none; /* ปิด scroll/zoom ในเขตกระดาน */
 }
 .tile{
   position:absolute;border:2px solid #222;border-radius:6px;display:flex;
@@ -100,7 +102,7 @@ body{
   position:absolute;left:40px;top:80px;right:40px;bottom:40px;border:3px solid #94a3b8;border-radius:8px;
   display:grid;grid-template-columns:180px 1fr;grid-template-rows:160px 1fr;background:#fff
 }
-.cell{border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem}
+.cell{border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;padding:.25rem}
 .cell input{
   font-size:1.15rem;padding:.4rem .5rem;border:1px solid #cbd5e1;border-radius:.4rem;
   width:100%;max-width:100%;min-width:0; /* สำคัญบนมือถือ */
