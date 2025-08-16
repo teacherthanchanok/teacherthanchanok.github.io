@@ -1,14 +1,11 @@
-<!DOCTYPE html>
-<!-- Algebra Tiles by Kru Zack
-     Version: 1.12 (2025-08-17)
-     Changelog (สรุป):
-     - เปลี่ยนไปใช้ Pointer Events ทั้งระบบ + touch-action:none
-     - แก้ workspace ตารางคูณ/หาร (มือถือไม่ล้น, ช่อง input พอดี)
-     - รวมกฎสุ่มโจทย์/เฉลย/ตารางคูณ–หาร ชุดล่าสุด
-     - โจทย์พหุนาม: ปัญหาวงเล็บตกหาย, เฉลยไม่ใส่ [ ]
-     - เพิ่มกล่อง “จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง”
-     - Toolbar ไม่เลื่อนซ้ายขวา (wrap บรรทัดใหม่), โซนบนกลับพื้นหลังขาว
+<!--
+Version: 2025-08-17 r8
+Changelog:
+- ใช้โครงสร้างล่าสุด (toolbar เลื่อนเฉพาะปุ่มภายใน)
+- เพิ่มแถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง"
+- คง id ของ workspaces ให้ทำงานร่วมกับ app.js ใหม่ (Pointer Events + กฎสุ่ม)
 -->
+<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="utf-8" />
@@ -17,83 +14,70 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- โซนบน (พื้นหลังขาว) -->
-  <div class="top-white">
-    <div class="toolbar">
-      <strong class="brand">Algebra Tiles by Kru Zack</strong>
-      <button class="btn" id="btn-reset">จัดระเบียบ</button>
-      <button class="btn" id="btn-delete">ลบ</button>
-      <button class="btn" id="btn-flip">พลิกด้าน</button>
-      <button class="btn" id="btn-zero">จับคู่เป็นศูนย์</button>
-      <button class="btn" id="btn-rotate">หมุน</button>
-      <button class="btn" id="btn-duplicate">เพิ่มจำนวน</button>
-      <button class="btn" id="btn-solution">เฉลย</button>
-      <button class="btn" id="btn-zoom-out">🔍−</button>
-      <button class="btn" id="btn-zoom-in">🔍＋</button>
+  <div class="toolbar" id="toolbar">
+    <strong class="brand">Algebra Tiles by Kru Zack</strong>
+    <button class="btn" id="btn-reset">จัดระเบียบ</button>
+    <button class="btn" id="btn-delete">ลบ</button>
+    <button class="btn" id="btn-flip">พลิกด้าน</button>
+    <button class="btn" id="btn-zero">จับคู่เป็นศูนย์</button>
+    <button class="btn" id="btn-rotate">หมุน</button>
+    <button class="btn" id="btn-duplicate">เพิ่มจำนวน</button>
+    <button class="btn" id="btn-solution">เฉลย</button>
+    <button class="btn" id="btn-zoom-out" title="ซูมออก">🔍−</button>
+    <button class="btn" id="btn-zoom-in"  title="ซูมเข้า">🔍＋</button>
 
-      <select id="mode" title="เลือกเมนู">
-        <option value="int_add">การบวกจำนวนเต็ม</option>
-        <option value="int_sub">การลบจำนวนเต็ม</option>
-        <option value="int_mul">การคูณจำนวนเต็ม</option>
-        <option value="int_div">การหารจำนวนเต็ม</option>
-        <option value="poly_add">การบวกพหุนาม</option>
-        <option value="poly_sub">การลบพหุนาม</option>
-        <option value="poly_mul">การคูณพหุนาม</option>
-        <option value="poly_div">การหารพหุนาม</option>
-      </select>
+    <select id="mode" title="เลือกเมนู">
+      <option value="int_add">การบวกจำนวนเต็ม</option>
+      <option value="int_sub">การลบจำนวนเต็ม</option>
+      <option value="int_mul">การคูณจำนวนเต็ม</option>
+      <option value="int_div">การหารจำนวนเต็ม</option>
+      <option value="poly_add">การบวกพหุนาม</option>
+      <option value="poly_sub">การลบพหุนาม</option>
+      <option value="poly_mul">การคูณพหุนาม</option>
+      <option value="poly_div">การหารพหุนาม</option>
+      <option value="solve_lin">การแก้สมการ</option>
+    </select>
 
-      <button class="btn help-btn" id="btn-help">?</button>
-    </div>
-
-    <div class="row">
-      <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
-      <div class="lbl">โจทย์:</div>
-      <div id="problem" class="prob"></div>
-      <div class="eq">=</div>
-      <input type="text" id="answerInput" placeholder="พิมพ์คำตอบ" />
-      <button class="btn btn-inline" id="btn-check">ตรวจสอบคำตอบ</button>
-      <div id="checkResult" class="check"></div>
-      <div id="solution" class="solution"></div>
-    </div>
-
-    <div class="row row-custom">
-      <input type="text" id="normalizeInput" placeholder="จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" />
-    </div>
+    <button class="btn help-btn" id="btn-help">?</button>
   </div>
 
-  <!-- พื้นที่ทำงาน -->
+  <!-- แถวโจทย์ (พื้นหลังขาวเสมอ) -->
+  <div class="row row-top">
+    <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
+    <div class="lbl">โจทย์:</div>
+    <div id="problem" class="prob"></div>
+    <div class="eq">=</div>
+    <input type="text" id="answerInput" placeholder="พิมพ์คำตอบ" />
+    <button class="btn btn-inline" id="btn-check">ตรวจสอบคำตอบ</button>
+    <div id="checkResult" class="check-msg"></div>
+    <div id="solution" class="solution"></div>
+  </div>
+
+  <!-- แถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" -->
+  <div class="row row-normalize">
+    <input id="normalizeInput" type="text" placeholder="จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" />
+  </div>
+
   <div class="wrap">
     <aside class="palette" id="palette">
       <div class="pal-title">กระเบื้องพีชคณิต</div>
-      <div class="pal-item" data-type="x2">
-        <div class="pal-chip chip-x2"></div><span>x<sup>2</sup></span>
-      </div>
-      <div class="pal-item" data-type="neg_x2">
-        <div class="pal-chip chip-negx2"></div><span>-x<sup>2</sup></span>
-      </div>
-      <div class="pal-item" data-type="x">
-        <div class="pal-chip chip-x"></div><span>x</span>
-      </div>
-      <div class="pal-item" data-type="neg_x">
-        <div class="pal-chip chip-negx"></div><span>-x</span>
-      </div>
-      <div class="pal-item" data-type="one">
-        <div class="pal-chip chip-one"></div><span>1</span>
-      </div>
-      <div class="pal-item" data-type="neg_one">
-        <div class="pal-chip chip-negone"></div><span>-1</span>
-      </div>
+      <div class="pal-item" data-type="x2"><div class="pal-chip chip-x2"></div><span>x<sup>2</sup></span></div>
+      <div class="pal-item" data-type="neg_x2"><div class="pal-chip chip-negx2"></div><span>-x<sup>2</sup></span></div>
+      <div class="pal-item" data-type="x"><div class="pal-chip chip-x"></div><span>x</span></div>
+      <div class="pal-item" data-type="neg_x"><div class="pal-chip chip-negx"></div><span>-x</span></div>
+      <div class="pal-item" data-type="one"><div class="pal-chip chip-one"></div><span>1</span></div>
+      <div class="pal-item" data-type="neg_one"><div class="pal-chip chip-negone"></div><span>-1</span></div>
       <div class="pal-note">* ต้องการจำนวนตรงข้ามใช้ปุ่ม “พลิกด้าน”</div>
     </aside>
 
     <section class="board-wrap">
       <div class="board" id="board">
-        <!-- กริดอยู่บน body แล้ว -->
+        <!-- Workspaces -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
         <div class="ws" id="ws-mul">
           <div class="table2x2" id="mul-table">
-            <div class="cell sym" id="mul-op">×</div>
+            <div class="cell" id="mul-op">×</div>
             <div class="cell" id="mul-mult">?</div>
             <div class="cell" id="mul-mcand">?</div>
             <div class="cell"></div>
@@ -102,7 +86,8 @@
 
         <div class="ws" id="ws-div">
           <div class="table2x2">
-            <div class="cell sym" id="div-op">÷</div>
+            <div class="cell" id="div-op">÷</div>
+            <!-- ทำให้พิมพ์ได้จริง และไม่โดน drag จับ -->
             <div class="cell"><input id="div-quot" placeholder="?" /></div>
             <div class="cell" id="div-divisor">?</div>
             <div class="cell"></div>
@@ -119,14 +104,20 @@
       <div class="help-title">วิธีใช้งาน Algebra Tiles</div>
       <ul class="help-list">
         <li>ลากชิ้นส่วนจากแถบซ้ายเข้าสู่กระดานได้ไม่จำกัด</li>
-        <li>กดค้างแล้วลากบนพื้นที่ว่างเพื่อเลือกคลุมหลายชิ้น</li>
-        <li>ปุ่ม “พลิกด้าน” เปลี่ยนเป็นค่าตรงข้าม, “จับคู่เป็นศูนย์” ลบคู่ตรงข้าม, “หมุน” ใช้กับสี่เหลี่ยมผืนผ้า, “เพิ่มจำนวน” เพิ่มชิ้นที่เลือก</li>
+        <li>คลิกค้างแล้วลากบนพื้นที่ว่างเพื่อเลือกคลุมหลายชิ้น</li>
+        <li>ปุ่ม “พลิกด้าน” เปลี่ยนเป็นค่าตรงข้าม, “จับคู่เป็นศูนย์” ลบคู่ตรงข้าม, “หมุน” ใช้กับสี่เหลี่ยมผืนผ้า, “เพิ่มจำนวน” เพิ่มชิ้นที่เลือกเป็นเท่าตัว</li>
         <li>ปุ่ม “จัดระเบียบ” เคลียร์กระดานและรีเซ็ตซูม</li>
         <li><b>หากต้องการพิมพ์กำลังสอง ให้พิมพ์ x^2</b></li>
       </ul>
+      <div class="video-wrap">
+        <iframe id="ytframe" src="https://www.youtube.com/embed/mIlSU7jyVCk?si=-Lb3Z5DN-naQjd7Z" title="Algebra Tiles" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
       <div class="credit">
         <div><b>จัดทำโดย นางสาวธัญชนก แย้มมาก</b></div>
         <div>โรงเรียนบางแม่หม้ายรัฐราษฎร์รังสฤษดิ์</div>
+      </div>
+      <div class="contact-row">
+        <a class="btn contact" href="https://line.me/ti/p/4X5zjQ9EjJ" target="_blank" rel="noopener">📞 ติดต่อคุณครู</a>
       </div>
     </div>
   </div>
