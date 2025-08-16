@@ -1,9 +1,9 @@
 /*
 Version: 2025-08-17 r10
 Changelog (from r9):
-- เปลี่ยนสไตล์ตารางเป็น .dtbl/.drow/.dcell (display:table/row/cell)
-- คงขนาด/ตำแหน่งเดิมของ workspace และเปิดเลื่อนแนวนอนเมื่อแคบ
-- ปรับมือถือแนวนอนให้กะทัดรัดขึ้น
+- เพิ่มสไตล์ div-table: .t2 / .t-row / .t-cell ใช้ display:table เพื่อแทน grid เดิม
+- คงขนาด/ขอบ/พื้นหลังใกล้เคียงของเดิม และเลื่อนแนวนอนได้เมื่อจอแคบ
+- ปรับ responsive: มือถือแนวนอนหดขนาดเซลล์/ฟอนต์ให้อ่านง่าย, input กินความกว้างเซลล์ได้เต็ม
 */
 :root{
   --purple:#6b21a8; --purple-2:#7c3aed; --ink:#111827; --line:#e5e7eb;
@@ -20,18 +20,23 @@ body{
   font-size:18px;
   overflow-x:hidden;
 
+  /* พื้นหลังตารางสีเทาอ่อน */
   background-size:40px 40px;
   background-image:
     linear-gradient(to right, var(--grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
 }
 
-/* Toolbar (เลื่อนเฉพาะแถวปุ่ม ไม่ให้ทั้งเพจขยับ) */
+/* Toolbar (เลื่อนแนวนอนได้เมื่อปุ่มเยอะ แต่ตัวแถบไม่ขยับตำแหน่งแนวตั้ง) */
 .toolbar{
   position:sticky;top:0;z-index:10;
   display:flex;align-items:center;gap:.6rem;
   padding:.6rem .9rem;background:var(--purple);color:#fff;
-  flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;
+
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
 }
 .brand{font-size:.9rem}
 .btn{
@@ -42,12 +47,14 @@ body{
 .btn:hover{filter:brightness(.96)}
 .help-btn{margin-left:auto}
 
-/* ทำให้ select ดูเท่ากับปุ่ม */
+/* select ให้สูง/ฟอนต์เท่าปุ่ม */
 .toolbar select#mode{
   font-size:1.05rem;
   padding:.55rem 1rem;
   border-radius:.7rem;
-  border:0;background:#e5e7ff;color:#000;
+  border:0;
+  background:#e5e7ff;
+  color:#000;
 }
 
 /* โซนโจทย์ */
@@ -89,37 +96,36 @@ body{
 .selected{outline:3px solid var(--purple-2)}
 .sel-rect{position:absolute;border:2px dashed var(--purple-2);background:rgba(124,58,237,.1)}
 
-/* Workspaces + Responsive table approach */
+/* Workspaces (อนุญาตเลื่อนภายในเมื่อแคบ) */
 .ws{
   position:absolute;left:40px;top:40px;right:40px;bottom:40px;
   border:3px solid #cbd5e1;background:#f8fafc;border-radius:10px;display:none;
-  overflow:auto;-webkit-overflow-scrolling:touch;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
 }
 .ws .midline{position:absolute;top:20px;bottom:20px;left:50%;width:3px;background:#94a3b8}
 
-/* ตารางแบบ <div> */
-.dtbl{
+/* ===== div-table (แทน grid เดิม) ===== */
+.t2{
   position:absolute;left:40px;top:80px;right:40px;bottom:40px;
   border:3px solid #94a3b8;border-radius:8px;background:#fff;
-  display:table; width:auto; height:auto; min-width:560px; /* ให้เลื่อนแนวนอนได้เมื่อแคบ */
-}
-.drow{display:table-row}
-.dcell{
-  display:table-cell;vertical-align:middle;text-align:center;
-  border:1px solid #cbd5e1;font-weight:700;font-size:1.2rem;padding:.25rem .5rem;
-}
-.dcell input{
-  font-size:1.15rem;padding:.4rem .5rem;border:1px solid #cbd5e1;border-radius:.4rem;width:100%;max-width:100%;min-width:0;background:#fff;color:#111
-}
 
-/* สัดส่วน 2x2 (ซ้าย/บนเป็น 180/160) */
-#mul-table, #div-table { table-layout:fixed }
-#mul-table .drow:first-child .dcell:first-child,
-#div-table .drow:first-child .dcell:first-child{ width:180px; height:160px }
-#mul-table .drow:last-child .dcell:first-child,
-#div-table .drow:last-child .dcell:first-child{ width:180px }
-#mul-table .drow:first-child .dcell:last-child,
-#div-table .drow:first-child .dcell:last-child{ height:160px }
+  display:table;
+  min-width:560px; /* ช่วยให้เลื่อนแนวนอนเมื่อจอแคบ */
+  width:calc(100% - 80px); /* คง margin ซ้ายขวา */
+  height:calc(100% - 120px); /* คง margin บนล่าง */
+  table-layout:fixed;
+}
+.t-row{display:table-row}
+.t-cell{
+  display:table-cell;vertical-align:middle;text-align:center;
+  border:1px solid #cbd5e1;font-weight:700;font-size:1.2rem;
+  padding:.25rem .5rem;
+}
+.t-cell input{
+  font-size:1.15rem;padding:.4rem .5rem;border:1px solid #cbd5e1;border-radius:.4rem;
+  width:100%;max-width:100%;min-width:0;background:#fff;color:#111;
+}
 
 /* Popup */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:40}
@@ -144,10 +150,8 @@ body{
   .pal-item{padding:.45rem}
   .row input[type=text]{min-width:12rem}
 }
-/* มือถือแนวนอน / หน้าต่างเตี้ย: กระชับตาราง */
+/* มือถือแนวนอน / หน้าต่างเตี้ย: กระชับตารางและฟอนต์ */
 @media (orientation: landscape) and (max-height: 520px){
-  #mul-table .drow:first-child .dcell:first-child,
-  #div-table .drow:first-child .dcell:first-child{ width:140px; height:120px }
-  .dtbl{min-width:480px}
-  .dcell{font-size:1.05rem}
+  .t2{min-width:480px}
+  .t-cell{font-size:1.05rem}
 }
