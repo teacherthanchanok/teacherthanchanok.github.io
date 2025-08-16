@@ -19,7 +19,7 @@
     <button class="btn" id="btn-zoom-out">🔍−</button>
     <button class="btn" id="btn-zoom-in">🔍＋</button>
 
-    <select id="mode" title="เลือกเมนู">
+    <select id="mode" class="menu-select" title="เลือกเมนู">
       <option value="int_add">การบวกจำนวนเต็ม</option>
       <option value="int_sub">การลบจำนวนเต็ม</option>
       <option value="int_mul">การคูณจำนวนเต็ม</option>
@@ -48,12 +48,24 @@
   <div class="wrap">
     <aside class="palette" id="palette">
       <div class="pal-title">กระเบื้องพีชคณิต</div>
-      <div class="pal-item" data-type="x2"><div class="pal-chip chip-x2"></div><span>x<sup>2</sup></span></div>
-      <div class="pal-item" data-type="neg_x2"><div class="pal-chip chip-negx2"></div><span>-x<sup>2</sup></span></div>
-      <div class="pal-item" data-type="x"><div class="pal-chip chip-x"></div><span>x</span></div>
-      <div class="pal-item" data-type="neg_x"><div class="pal-chip chip-negx"></div><span>-x</span></div>
-      <div class="pal-item" data-type="one"><div class="pal-chip chip-one"></div><span>1</span></div>
-      <div class="pal-item" data-type="neg_one"><div class="pal-chip chip-negone"></div><span>-1</span></div>
+      <div class="pal-item" data-type="x2">
+        <div class="pal-chip chip-x2"></div><span>x<sup>2</sup></span>
+      </div>
+      <div class="pal-item" data-type="neg_x2">
+        <div class="pal-chip chip-negx2"></div><span>-x<sup>2</sup></span>
+      </div>
+      <div class="pal-item" data-type="x">
+        <div class="pal-chip chip-x"></div><span>x</span>
+      </div>
+      <div class="pal-item" data-type="neg_x">
+        <div class="pal-chip chip-negx"></div><span>-x</span>
+      </div>
+      <div class="pal-item" data-type="one">
+        <div class="pal-chip chip-one"></div><span>1</span>
+      </div>
+      <div class="pal-item" data-type="neg_one">
+        <div class="pal-chip chip-negone"></div><span>-1</span>
+      </div>
       <div class="pal-note">* ต้องการจำนวนตรงข้ามใช้ปุ่ม “พลิกด้าน”</div>
     </aside>
 
@@ -76,7 +88,7 @@
         <div class="ws" id="ws-div">
           <div class="table2x2">
             <div class="cell" id="div-op">÷</div>
-            <!-- ทำให้พิมพ์ได้จริง และไม่โดน drag จับ -->
+            <!-- ทำให้พิมพ์ได้ และไม่โดน drag -->
             <div class="cell"><input id="div-quot" placeholder="?" /></div>
             <div class="cell" id="div-divisor">?</div>
             <div class="cell"></div>
@@ -93,8 +105,8 @@
       <div class="help-title">วิธีใช้งาน Algebra Tiles</div>
       <ul class="help-list">
         <li>ลากชิ้นส่วนจากแถบซ้ายเข้าสู่กระดานได้ไม่จำกัด</li>
-        <li>คลิกค้างแล้วลากบนพื้นที่ว่างเพื่อเลือกคลุมหลายชิ้น</li>
-        <li>ปุ่ม “พลิกด้าน” เปลี่ยนเป็นค่าตรงข้าม, “จับคู่เป็นศูนย์” ลบคู่ตรงข้าม, “หมุน” ใช้กับสี่เหลี่ยมผืนผ้า, “เพิ่มจำนวน” เพิ่มชิ้นที่เลือกเป็นเท่าตัว</li>
+        <li>แตะค้างและลากบนพื้นที่ว่างเพื่อเลือกหลายชิ้น</li>
+        <li>ปุ่ม “พลิกด้าน” เปลี่ยนเป็นค่าตรงข้าม, “จับคู่เป็นศูนย์” ลบคู่ตรงข้าม, “หมุน” ใช้กับสี่เหลี่ยมผืนผ้า, “เพิ่มจำนวน” เพิ่มชิ้นที่เลือก</li>
         <li>ปุ่ม “จัดระเบียบ” เคลียร์กระดานและรีเซ็ตซูม</li>
         <li><b>หากต้องการพิมพ์กำลังสอง ให้พิมพ์ x^2</b></li>
       </ul>
@@ -111,7 +123,6 @@
     </div>
   </div>
 
-  <!-- ใช้ defer เพื่อให้ DOM พร้อมก่อนรันสคริปต์ -->
-  <script src="app.js" defer></script>
+  <script src="app.js"></script>
 </body>
 </html>
