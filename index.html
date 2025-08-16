@@ -1,12 +1,11 @@
 <!--
-Version: 2025-08-16-fullrules-pe2
+Version: 2025-08-17-resp-pe3
 Changelog:
-- ใช้ Pointer Events (pointerdown/move/up/cancel) ทั้งหมด
-- ล็อกการสกรอลล์/ซูมบนกระดานด้วย CSS touch-action: none
-- รวมกฎสุ่มโจทย์/การจัดวงเล็บ/ดีกรี/เพดานผลคูณ/หารลงตัว
-- ปรับ solution ให้ใช้ตรรกะ format เดียวกับโจทย์ (แต่ไม่ติด [ ])
-- เพิ่มแถว “จัดรูปสมการใหม่” ใต้แถวโจทย์
-- ปรับตาราง mul/div โชว์ตัวประกอบตามรูปแบบใหม่
+- ใช้ Pointer Events (pointerdown/move/up/cancel) ทั้งระบบลาก
+- แก้ UI บนมือถือ/ย่อหน้าต่าง: แถวโจทย์พื้นหลังขาว, input กว้างขึ้น, โซน normalize แยกบรรทัด
+- ปิดการเลื่อน/ซูมในเขตกระดาน (CSS touch-action: none)
+- แก้ input ของตารางหาร (column 2 row 1) ให้พิมพ์ได้และยืดกว้างบนมือถือ
+- palette แสดงสีชิ้นส่วนตามภาพเดิม
 -->
 <!DOCTYPE html>
 <html lang="th">
@@ -44,7 +43,7 @@ Changelog:
     <button class="btn help-btn" id="btn-help">?</button>
   </div>
 
-  <!-- แถวโจทย์/คำตอบ (พื้นหลังขาว) -->
+  <!-- แถวโจทย์ (พื้นหลังขาวเสมอ) -->
   <div class="row row-top">
     <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
     <div class="lbl">โจทย์:</div>
@@ -56,7 +55,7 @@ Changelog:
     <div id="solution" class="solution"></div>
   </div>
 
-  <!-- กล่อง จัดรูปสมการใหม่ (บรรทัดถัดมา) -->
+  <!-- แถว 'จัดรูปสมการใหม่' -->
   <div class="row row-normalize">
     <input id="normalizeInput" type="text" placeholder="จัดรูปสมการใหม่" />
   </div>
@@ -65,7 +64,7 @@ Changelog:
     <aside class="palette" id="palette">
       <div class="pal-title">กระเบื้องพีชคณิต</div>
 
-      <!-- palette พร้อมสี -->
+      <!-- สีชิ้นส่วนเหมือนเดิม -->
       <div class="pal-item" data-type="x2"><div class="pal-chip chip-x2"></div><span>x<sup>2</sup></span></div>
       <div class="pal-item" data-type="neg_x2"><div class="pal-chip chip-negx2"></div><span>-x<sup>2</sup></span></div>
       <div class="pal-item" data-type="x"><div class="pal-chip chip-x"></div><span>x</span></div>
@@ -78,7 +77,7 @@ Changelog:
 
     <section class="board-wrap">
       <div class="board" id="board">
-        <!-- Workspaces -->
+        <!-- เวิร์กสเปซ -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
         <div class="ws" id="ws-mul">
@@ -93,6 +92,7 @@ Changelog:
         <div class="ws" id="ws-div">
           <div class="table2x2">
             <div class="cell" id="div-op">÷</div>
+            <!-- ช่องกรอกผลหาร: ให้พิมพ์ได้ + ยืดกว้าง -->
             <div class="cell"><input id="div-quot" placeholder="?" /></div>
             <div class="cell" id="div-divisor">?</div>
             <div class="cell"></div>
