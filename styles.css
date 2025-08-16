@@ -1,9 +1,15 @@
-/* Version 1.12 – pointer events + responsive + light grid background */
-
+/*
+Version: 2025-08-17 r8
+Changelog:
+- ปรับกริดพื้นหลัง (เทาอ่อน) และปิดการเลื่อนแนวนอนทั้งหน้า
+- board/tile ใช้ touch-action:none สำหรับ Pointer Events
+- อินพุตใน cell กว้าง 100% บนมือถือ (แก้ปัญหา column 2 row 1 แคบ)
+- เพิ่ม responsive สำหรับมือถือแนวนอนให้ตาราง 2x2 กระชับขึ้น
+*/
 :root{
   --purple:#6b21a8; --purple-2:#7c3aed; --ink:#111827; --line:#e5e7eb;
   --blue:#4A7BD9; --green:#4CAF50; --red:#C91C1C; --yellow:#F6D267;
-  --grid:#d9dbe1; /* เส้นเทาอ่อน */
+  --grid:#d7d7d7;
 }
 
 *{box-sizing:border-box}
@@ -13,105 +19,107 @@ body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   color:#111;
   font-size:18px;
+  overflow-x:hidden;
 
-  /* กริดพื้นหลังตามที่ร้องขอ (อ่อน) */
+  /* พื้นหลังกริดสีเทาอ่อน */
   background-size:40px 40px;
   background-image:
     linear-gradient(to right, var(--grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
 }
 
-/* โซนบนพื้นหลังขาว */
-.top-white{background:#fff; position:sticky; top:0; z-index:20; border-bottom:1px solid var(--line)}
-
-/* Toolbar: ไม่เลื่อนซ้ายขวา, wrap แทน */
+/* Toolbar: เลื่อนภายใน, หน้าไม่เลื่อน */
 .toolbar{
-  display:flex; flex-wrap:wrap; gap:.6rem; align-items:center;
-  padding:.6rem .9rem; background:var(--purple); color:#fff; overflow-x:hidden;
+  position:sticky;top:0;z-index:10;
+  display:flex;align-items:center;gap:.6rem;
+  padding:.6rem .9rem;background:var(--purple);color:#fff;
+
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
 }
-.brand{font-size:.9rem; font-weight:700} /* ลดครึ่งหนึ่ง */
+.brand{font-size:.9rem} /* ลดครึ่งหนึ่ง */
 .btn{
   border:0;border-radius:.7rem;padding:.55rem 1rem;
-  background:linear-gradient(180deg,#bbd0ff,#b8c0ff);color:#000;cursor:pointer;font-size:1.05rem
+  background:linear-gradient(180deg,#bbd0ff,#b8c0ff);color:#000;
+  cursor:pointer;font-size:1.05rem;white-space:nowrap;
 }
 .btn:hover{filter:brightness(.96)}
 .help-btn{margin-left:auto}
 
-.row{
-  display:flex; align-items:center; gap:.6rem; padding:.7rem .9rem;
-  flex-wrap:wrap; background:#fff;
+/* โซนโจทย์ */
+.row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.row-top{
+  padding:.7rem .9rem;border-bottom:1px solid var(--line);
+  background:#fff;font-size:1.2rem;
 }
 .row .lbl{font-weight:700}
-.prob{font-size:1.2rem}
-.eq{font-size:1.2rem;margin-left:.2rem}
-.row input[type=text]{font-size:1rem;padding:.5rem .65rem;border:1px solid var(--line);border-radius:.5rem;min-width:16rem;background:#fff;color:#111}
+.row .prob{font-size:1.35rem}
+.row .eq{font-size:1.35rem;margin-left:.6rem}
+.row input[type=text]{font-size:1.1rem;padding:.5rem .65rem;border:1px solid var(--line);border-radius:.5rem;min-width:18rem;background:#fff;color:#111}
 .row .btn-inline{background:#f3f4f6;color:#111;border:1px solid var(--line)}
-.row-custom input{width:100%; max-width:720px}
-.check{min-width:6rem}
-.solution{margin-left:.4rem}
+.solution{margin-left:.6rem}
+.check-msg{min-width:6.5rem}
 
-.wrap{display:flex; min-height:calc(100vh - 210px);}
+/* แถว normalize */
+.row-normalize{padding:.25rem .9rem .7rem;background:#fff;border-bottom:1px solid var(--line)}
+#normalizeInput{width:100%;max-width:1100px;border:1px solid var(--line);border-radius:.5rem;padding:.5rem .65rem;font-size:1.05rem;background:#fff;color:#111}
 
-/* Palette – เฉพาะสี ไม่เปลี่ยนรูปทรง */
-.palette{width:260px;border-right:1px solid var(--line);padding:12px;background:#f9fafb}
+/* Layout */
+.wrap{display:flex;min-height:calc(100vh - 160px);}
+.palette{width:220px;border-right:1px solid var(--line);padding:12px;background:#f9fafb}
 .pal-title{font-weight:700;margin-bottom:.4rem}
-.pal-item{display:flex;align-items:center;gap:.6rem;padding:.6rem;border:1px solid var(--line);border-radius:.5rem;background:#fff;margin-bottom:.6rem;cursor:pointer;font-size:1.05rem; user-select:none}
+.pal-item{display:flex;align-items:center;gap:.6rem;padding:.6rem;border:1px solid var(--line);border-radius:.5rem;background:#fff;margin-bottom:.6rem;cursor:grab;font-size:1.05rem}
 .pal-chip{border:2px solid #222}
 .chip-x2{width:24px;height:24px;background:var(--blue)}
 .chip-negx2{width:24px;height:24px;background:var(--red)}
-.chip-x{width:48px;height:16px;background:var(--green)}
-.chip-negx{width:48px;height:16px;background:var(--red)}
+.chip-x{width:48px;height:12px;background:var(--green)}
+.chip-negx{width:48px;height:12px;background:var(--red)}
 .chip-one{width:18px;height:18px;background:var(--yellow)}
 .chip-negone{width:18px;height:18px;background:var(--red)}
-.pal-note{font-size:.95rem;color:#6b7280}
+.pal-note{font-size:1rem;color:#6b7280}
 
-/* Board */
 .board-wrap{position:relative;flex:1;overflow:hidden}
-.board{
-  position:absolute; inset:0; transform-origin:0 0;
-  touch-action:none; /* กันเลื่อน/ซูมบนพื้นที่กระดาน */
-}
-.tile{
-  position:absolute; border:2px solid #222;border-radius:6px;
-  display:flex;align-items:center;justify-content:center;font-weight:700;user-select:none;color:#000;
-  touch-action:none;
-}
+.board{position:absolute;inset:0;transform-origin:0 0;touch-action:none}
+.tile{position:absolute;border:2px solid #222;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;user-select:none;color:#000;touch-action:none}
 .tile span{pointer-events:none}
 .selected{outline:3px solid var(--purple-2)}
-.sel-rect{position:absolute;border:2px dashed var(--purple-2);background:rgba(124,58,237,.1);pointer-events:none}
+.sel-rect{position:absolute;border:2px dashed var(--purple-2);background:rgba(124,58,237,.1)}
 
 /* Workspaces */
-.ws{position:absolute;left:40px;top:20px;right:40px;bottom:40px;border:3px solid #cbd5e1;background:#f8fafc;border-radius:10px;display:none;}
+.ws{position:absolute;left:40px;top:40px;right:40px;bottom:40px;border:3px solid #cbd5e1;background:#f8fafc;border-radius:10px;display:none;}
 .ws .midline{position:absolute;top:20px;bottom:20px;left:50%;width:3px;background:#94a3b8}
+.table2x2{position:absolute;left:40px;top:80px;right:40px;bottom:40px;border:3px solid #94a3b8;border-radius:8px;display:grid;grid-template-columns:180px 1fr;grid-template-rows:160px 1fr;background:#fff}
+.cell{border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;padding:.25rem}
+.cell input{font-size:1.15rem;padding:.4rem .5rem;border:1px solid #cbd5e1;border-radius:.4rem;width:100%;max-width:100%;min-width:0;background:#fff;color:#111}
 
-.table2x2{
-  position:absolute; left:30px; top:50px; right:30px; bottom:30px;
-  border:3px solid #94a3b8;border-radius:8px;display:grid;
-  grid-template-columns:160px 1fr; grid-template-rows:140px 1fr; background:#fff;
-}
-.cell{border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem; padding:.25rem}
-.cell.sym{font-size:1.3rem}
-.cell input{
-  width:100%; max-width:100%; font-size:1.05rem;
-  padding:.45rem .6rem; border:1px solid #cbd5e1; border-radius:.4rem; background:#fff; color:#111;
-}
-
-/* Popup (ย่อ) */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:40}
-.card{position:relative;background:#fff;border-radius:14px;max-width:760px;width:96%;padding:16px}
+/* Popup */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:40}
+.card{position:relative;background:#fff;border-radius:14px;max-width:780px;width:96%;padding:16px}
 .close-x{position:absolute;right:8px;top:8px;background:#ef4444;border:none;color:#fff;border-radius:999px;width:34px;height:34px;cursor:pointer;font-weight:800}
 .help-title{font-weight:800;margin-bottom:.4rem}
-.help-list{margin:.3rem 1rem;font-size:1.02rem}
-.credit{font-size:.95rem;color:#374151;margin-top:.6rem;text-align:center}
+.help-list{margin:.3rem 1rem;font-size:1.05rem}
+.video-wrap{position:relative;padding-top:56.25%;margin-top:.5rem}
+.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%}
+.credit{font-size:1rem;color:#374151;margin-top:.6rem;text-align:center}
+.contact-row{display:flex;justify-content:center;margin-top:.6rem}
+.contact{display:inline-block}
 
-/* Responsive – Medium Mobile focus */
+/* Responsive (โฟกัส Medium Mobile) */
 @media (max-width: 900px){
   .wrap{flex-direction:column}
   .palette{width:100%; order:2}
-  .board-wrap{order:1; min-height:58vh}
-  .table2x2{grid-template-columns:130px 1fr; grid-template-rows:120px 1fr}
+  .board-wrap{order:1; min-height:55vh}
 }
-@media (max-width: 430px){
+@media (max-width: 480px){
+  .palette{font-size:0.95rem}
+  .pal-item{padding:.45rem}
   .row input[type=text]{min-width:12rem}
-  .brand{font-size:.85rem}
+}
+
+/* มือถือแนวนอน / หน้าต่างเตี้ย: กระชับตารางและขยาย input cell */
+@media (orientation: landscape) and (max-height: 520px){
+  .table2x2{grid-template-columns:140px 1fr;grid-template-rows:120px 1fr}
+  .cell{font-size:1.05rem}
 }
