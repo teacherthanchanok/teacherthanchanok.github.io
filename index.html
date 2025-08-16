@@ -1,3 +1,8 @@
+<!-- Version: 1.4.0  |  Changelog:
+- Migrate mouse/touch → Pointer Events (pointerdown/move/up/cancel)
+- Lock board scroll/zoom with CSS touch-action:none
+- Inputs/controls stop propagation on pointerdown
+-->
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -7,7 +12,7 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="toolbar">
+  <div class="toolbar" id="toolbar">
     <strong class="brand">Algebra Tiles by Kru Zack</strong>
     <button class="btn" id="btn-reset">จัดระเบียบ</button>
     <button class="btn" id="btn-delete">ลบ</button>
@@ -36,7 +41,10 @@
 
   <div class="row">
     <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
-    <input type="text" id="normalizeInput" class="normalize" placeholder="จัดรูปสมการใหม่" />
+    <input type="text" class="reshape" id="reshapeInput" placeholder="จัดรูปสมการใหม่" />
+  </div>
+
+  <div class="row">
     <div class="lbl">โจทย์:</div>
     <div id="problem" class="prob"></div>
     <div class="eq">=</div>
@@ -77,7 +85,6 @@
         <div class="ws" id="ws-div">
           <div class="table2x2">
             <div class="cell" id="div-op">÷</div>
-            <!-- ช่องผลหาร: พิมพ์ได้บนมือถือ -->
             <div class="cell"><input id="div-quot" placeholder="?" /></div>
             <div class="cell" id="div-divisor">?</div>
             <div class="cell"></div>
