@@ -1,9 +1,10 @@
 /*
-Version: 2025-08-17-toolbar-scroll-1
+Version: 2025-08-17 r7
 Changelog:
-- body overflow-x:hidden ป้องกันหน้าเลื่อนซ้ายขวา
-- .toolbar เป็นแถวเลื่อนปุ่มภายในเอง (overflow-x:auto, nowrap)
-- เปลี่ยน placeholder แถว normalize ตาม index.html (ไม่มีผล CSS)
+- body overflow-x:hidden, พื้นหลังกระดานเป็นกริดสีเทาอ่อน
+- toolbar เลื่อนปุ่มภายในเอง (overflow-x:auto) และไม่ทำให้หน้าเลื่อนซ้าย-ขวา
+- board/tile ตั้ง touch-action:none เพื่อกันการสกรอล์/ซูมระหว่างลาก
+- ปรับ input ในเซลล์ให้กว้าง 100% เพื่อแก้ปัญหาในมือถือ
 */
 :root{
   --purple:#6b21a8; --purple-2:#7c3aed; --ink:#111827; --line:#e5e7eb;
@@ -18,27 +19,27 @@ body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   color:#111;
   font-size:18px;
-  overflow-x:hidden; /* ป้องกันหน้าเลื่อนซ้ายขวา */
+  overflow-x:hidden;
 
-  /* พื้นหลังกริด */
+  /* พื้นหลังกริดสีเทาอ่อน */
   background-size:40px 40px;
   background-image:
     linear-gradient(to right, var(--grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
 }
 
-/* Toolbar: ไม่ทำให้หน้าเลื่อน แต่เลื่อนปุ่มภายในได้ */
+/* Toolbar: เลื่อนภายใน, หน้าไม่เลื่อน */
 .toolbar{
   position:sticky;top:0;z-index:10;
   display:flex;align-items:center;gap:.6rem;
   padding:.6rem .9rem;background:var(--purple);color:#fff;
 
-  flex-wrap:nowrap;          /* ไม่ตัดบรรทัด */
-  overflow-x:auto;           /* เลื่อนเฉพาะภายใน toolbar */
+  flex-wrap:nowrap;
+  overflow-x:auto;
   -webkit-overflow-scrolling:touch;
   scrollbar-width:thin;
 }
-.brand{font-size:.9rem} /* ลดครึ่งหนึ่ง */
+.brand{font-size:.9rem} /* ลดครึ่งหนึ่งตามที่เคยขอ */
 .btn{
   border:0;border-radius:.7rem;padding:.55rem 1rem;
   background:linear-gradient(180deg,#bbd0ff,#b8c0ff);color:#000;
