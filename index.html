@@ -1,9 +1,8 @@
 <!--
-Version: 2025-08-17 r10
-Changelog (from r9):
-- เปลี่ยนโครงสร้างตารางใน workspace "คูณ/หาร" จาก grid เป็น <div> แบบ table (t2/t-row/t-cell)
-- คง id เดิม (mul-op, mul-mult, mul-mcand, div-op, div-divisor, div-quot) เพื่อไม่กระทบ app.js เดิม
-- ปรับสไตล์ให้ตารางเลื่อนแนวนอนได้เมื่อจอแคบ/มือถือแนวนอน
+Version: 2025-08-17 r9
+Changelog (from r8):
+- ไม่เปลี่ยนโครงสร้าง HTML; ใช้สไตล์ใหม่ของ select และตารางจาก styles.css r9
+- คงแถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง"
 -->
 <!DOCTYPE html>
 <html lang="th">
@@ -75,34 +74,23 @@ Changelog (from r9):
         <!-- Workspaces -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
-        <!-- ตารางคูณ (div-table) -->
         <div class="ws" id="ws-mul">
-          <div class="t2" id="mul-table">
-            <div class="t-row">
-              <div class="t-cell" id="mul-op">×</div>
-              <div class="t-cell" id="mul-mult">?</div>
-            </div>
-            <div class="t-row">
-              <div class="t-cell" id="mul-mcand">?</div>
-              <div class="t-cell"></div>
-            </div>
+          <div class="table2x2" id="mul-table">
+            <div class="cell" id="mul-op">×</div>
+            <div class="cell" id="mul-mult">?</div>
+            <div class="cell" id="mul-mcand">?</div>
+            <div class="cell"></div>
           </div>
         </div>
 
-        <!-- ตารางหาร (div-table) -->
         <div class="ws" id="ws-div">
-          <div class="t2">
-            <div class="t-row">
-              <div class="t-cell" id="div-op">÷</div>
-              <div class="t-cell"><input id="div-quot" placeholder="?" /></div>
-            </div>
-            <div class="t-row">
-              <div class="t-cell" id="div-divisor">?</div>
-              <div class="t-cell"></div>
-            </div>
+          <div class="table2x2">
+            <div class="cell" id="div-op">÷</div>
+            <div class="cell"><input id="div-quot" placeholder="?" /></div>
+            <div class="cell" id="div-divisor">?</div>
+            <div class="cell"></div>
           </div>
         </div>
-
       </div>
     </section>
   </div>
