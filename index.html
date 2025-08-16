@@ -1,8 +1,9 @@
 <!--
-Version: 2025-08-17 r9
-Changelog (from r8):
-- ไม่เปลี่ยนโครงสร้าง HTML; ใช้สไตล์ใหม่ของ select และตารางจาก styles.css r9
-- คงแถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง"
+Version: 2025-08-17 r8
+Changelog:
+- ใช้โครงสร้างล่าสุด (toolbar เลื่อนเฉพาะปุ่มภายใน)
+- เพิ่มแถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง"
+- คง id ของ workspaces ให้ทำงานร่วมกับ app.js ใหม่ (Pointer Events + กฎสุ่ม)
 -->
 <!DOCTYPE html>
 <html lang="th">
@@ -86,6 +87,7 @@ Changelog (from r8):
         <div class="ws" id="ws-div">
           <div class="table2x2">
             <div class="cell" id="div-op">÷</div>
+            <!-- ทำให้พิมพ์ได้จริง และไม่โดน drag จับ -->
             <div class="cell"><input id="div-quot" placeholder="?" /></div>
             <div class="cell" id="div-divisor">?</div>
             <div class="cell"></div>
