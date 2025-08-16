@@ -1,9 +1,9 @@
 <!--
 Version: 2025-08-17 r10
 Changelog (from r9):
-- เปลี่ยนโครงสร้างตารางคูณ/หารเป็น <div> (display:table/row/cell)
-- รักษา id เดิม (mul-op, mul-mult, mul-mcand, div-op, div-divisor, div-quot)
-- พื้นที่แถวโจทย์/อินพุตคงเดิม
+- เปลี่ยนโครงสร้างตารางใน workspace "คูณ/หาร" จาก grid เป็น <div> แบบ table (t2/t-row/t-cell)
+- คง id เดิม (mul-op, mul-mult, mul-mcand, div-op, div-divisor, div-quot) เพื่อไม่กระทบ app.js เดิม
+- ปรับสไตล์ให้ตารางเลื่อนแนวนอนได้เมื่อจอแคบ/มือถือแนวนอน
 -->
 <!DOCTYPE html>
 <html lang="th">
@@ -75,33 +75,34 @@ Changelog (from r9):
         <!-- Workspaces -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
-        <!-- ตารางคูณจำนวนเต็ม / คูณพหุนาม -->
+        <!-- ตารางคูณ (div-table) -->
         <div class="ws" id="ws-mul">
-          <div class="dtbl" id="mul-table">
-            <div class="drow">
-              <div class="dcell" id="mul-op">×</div>
-              <div class="dcell" id="mul-mult">?</div>
+          <div class="t2" id="mul-table">
+            <div class="t-row">
+              <div class="t-cell" id="mul-op">×</div>
+              <div class="t-cell" id="mul-mult">?</div>
             </div>
-            <div class="drow">
-              <div class="dcell" id="mul-mcand">?</div>
-              <div class="dcell"></div>
+            <div class="t-row">
+              <div class="t-cell" id="mul-mcand">?</div>
+              <div class="t-cell"></div>
             </div>
           </div>
         </div>
 
-        <!-- ตารางหารจำนวนเต็ม / หารพหุนาม -->
+        <!-- ตารางหาร (div-table) -->
         <div class="ws" id="ws-div">
-          <div class="dtbl" id="div-table">
-            <div class="drow">
-              <div class="dcell" id="div-op">÷</div>
-              <div class="dcell"><input id="div-quot" placeholder="?" /></div>
+          <div class="t2">
+            <div class="t-row">
+              <div class="t-cell" id="div-op">÷</div>
+              <div class="t-cell"><input id="div-quot" placeholder="?" /></div>
             </div>
-            <div class="drow">
-              <div class="dcell" id="div-divisor">?</div>
-              <div class="dcell"></div>
+            <div class="t-row">
+              <div class="t-cell" id="div-divisor">?</div>
+              <div class="t-cell"></div>
             </div>
           </div>
         </div>
+
       </div>
     </section>
   </div>
