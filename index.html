@@ -1,8 +1,9 @@
 <!--
-Version: 2025-08-17-toolbar-scroll-1
+Version: 2025-08-17 r7
 Changelog:
-- เปลี่ยนข้อความอินพุต normalize เป็น "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง"
-- ทำให้แถบปุ่ม (toolbar) เลื่อนปุ่มภายในเองได้ โดยหน้าเว็บไม่เกิดการเลื่อนแนวนอน
+- Toolbar เลื่อนปุ่มภายใน (overflow-x:auto) หน้าไม่เลื่อนซ้าย-ขวา
+- เพิ่มแถวอินพุต "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง"
+- คงโครงสร้าง workspace และ id เดิมทั้งหมดให้เข้ากับ app.js ชุดกฎสุ่มล่าสุด
 -->
 <!DOCTYPE html>
 <html lang="th">
@@ -52,7 +53,7 @@ Changelog:
     <div id="solution" class="solution"></div>
   </div>
 
-  <!-- แถว 'จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง' -->
+  <!-- แถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" -->
   <div class="row row-normalize">
     <input id="normalizeInput" type="text" placeholder="จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" />
   </div>
@@ -60,19 +61,18 @@ Changelog:
   <div class="wrap">
     <aside class="palette" id="palette">
       <div class="pal-title">กระเบื้องพีชคณิต</div>
-
       <div class="pal-item" data-type="x2"><div class="pal-chip chip-x2"></div><span>x<sup>2</sup></span></div>
       <div class="pal-item" data-type="neg_x2"><div class="pal-chip chip-negx2"></div><span>-x<sup>2</sup></span></div>
       <div class="pal-item" data-type="x"><div class="pal-chip chip-x"></div><span>x</span></div>
       <div class="pal-item" data-type="neg_x"><div class="pal-chip chip-negx"></div><span>-x</span></div>
       <div class="pal-item" data-type="one"><div class="pal-chip chip-one"></div><span>1</span></div>
       <div class="pal-item" data-type="neg_one"><div class="pal-chip chip-negone"></div><span>-1</span></div>
-
       <div class="pal-note">* ต้องการจำนวนตรงข้ามใช้ปุ่ม “พลิกด้าน”</div>
     </aside>
 
     <section class="board-wrap">
       <div class="board" id="board">
+        <!-- Workspaces -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
         <div class="ws" id="ws-mul">
@@ -87,6 +87,7 @@ Changelog:
         <div class="ws" id="ws-div">
           <div class="table2x2">
             <div class="cell" id="div-op">÷</div>
+            <!-- ทำให้พิมพ์ได้จริง และไม่โดน drag จับ -->
             <div class="cell"><input id="div-quot" placeholder="?" /></div>
             <div class="cell" id="div-divisor">?</div>
             <div class="cell"></div>
