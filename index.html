@@ -1,7 +1,12 @@
-<!-- Version: 1.4.0  |  Changelog:
-- Migrate mouse/touch → Pointer Events (pointerdown/move/up/cancel)
-- Lock board scroll/zoom with CSS touch-action:none
-- Inputs/controls stop propagation on pointerdown
+<!--
+Version: 2025-08-16-fullrules-pe2
+Changelog:
+- ใช้ Pointer Events (pointerdown/move/up/cancel) ทั้งหมด
+- ล็อกการสกรอลล์/ซูมบนกระดานด้วย CSS touch-action: none
+- รวมกฎสุ่มโจทย์/การจัดวงเล็บ/ดีกรี/เพดานผลคูณ/หารลงตัว
+- ปรับ solution ให้ใช้ตรรกะ format เดียวกับโจทย์ (แต่ไม่ติด [ ])
+- เพิ่มแถว “จัดรูปสมการใหม่” ใต้แถวโจทย์
+- ปรับตาราง mul/div โชว์ตัวประกอบตามรูปแบบใหม่
 -->
 <!DOCTYPE html>
 <html lang="th">
@@ -12,7 +17,7 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="toolbar" id="toolbar">
+  <div class="toolbar">
     <strong class="brand">Algebra Tiles by Kru Zack</strong>
     <button class="btn" id="btn-reset">จัดระเบียบ</button>
     <button class="btn" id="btn-delete">ลบ</button>
@@ -21,8 +26,8 @@
     <button class="btn" id="btn-rotate">หมุน</button>
     <button class="btn" id="btn-duplicate">เพิ่มจำนวน</button>
     <button class="btn" id="btn-solution">เฉลย</button>
-    <button class="btn" id="btn-zoom-out">🔍−</button>
-    <button class="btn" id="btn-zoom-in">🔍＋</button>
+    <button class="btn" id="btn-zoom-out" title="ซูมออก">🔍−</button>
+    <button class="btn" id="btn-zoom-in"  title="ซูมเข้า">🔍＋</button>
 
     <select id="mode" title="เลือกเมนู">
       <option value="int_add">การบวกจำนวนเต็ม</option>
@@ -39,37 +44,40 @@
     <button class="btn help-btn" id="btn-help">?</button>
   </div>
 
-  <div class="row">
+  <!-- แถวโจทย์/คำตอบ (พื้นหลังขาว) -->
+  <div class="row row-top">
     <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
-    <input type="text" class="reshape" id="reshapeInput" placeholder="จัดรูปสมการใหม่" />
-  </div>
-
-  <div class="row">
     <div class="lbl">โจทย์:</div>
     <div id="problem" class="prob"></div>
     <div class="eq">=</div>
     <input type="text" id="answerInput" placeholder="พิมพ์คำตอบ" />
     <button class="btn btn-inline" id="btn-check">ตรวจสอบคำตอบ</button>
-    <div id="checkResult"></div>
+    <div id="checkResult" class="check-msg"></div>
     <div id="solution" class="solution"></div>
+  </div>
+
+  <!-- กล่อง จัดรูปสมการใหม่ (บรรทัดถัดมา) -->
+  <div class="row row-normalize">
+    <input id="normalizeInput" type="text" placeholder="จัดรูปสมการใหม่" />
   </div>
 
   <div class="wrap">
     <aside class="palette" id="palette">
       <div class="pal-title">กระเบื้องพีชคณิต</div>
+
+      <!-- palette พร้อมสี -->
       <div class="pal-item" data-type="x2"><div class="pal-chip chip-x2"></div><span>x<sup>2</sup></span></div>
       <div class="pal-item" data-type="neg_x2"><div class="pal-chip chip-negx2"></div><span>-x<sup>2</sup></span></div>
       <div class="pal-item" data-type="x"><div class="pal-chip chip-x"></div><span>x</span></div>
       <div class="pal-item" data-type="neg_x"><div class="pal-chip chip-negx"></div><span>-x</span></div>
       <div class="pal-item" data-type="one"><div class="pal-chip chip-one"></div><span>1</span></div>
       <div class="pal-item" data-type="neg_one"><div class="pal-chip chip-negone"></div><span>-1</span></div>
+
       <div class="pal-note">* ต้องการจำนวนตรงข้ามใช้ปุ่ม “พลิกด้าน”</div>
     </aside>
 
     <section class="board-wrap">
       <div class="board" id="board">
-        <div class="grid"></div>
-
         <!-- Workspaces -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
