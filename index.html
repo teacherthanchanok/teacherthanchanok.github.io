@@ -1,9 +1,3 @@
-<!--
-Version: 2025-08-17 r9
-Changelog (from r8):
-- ไม่เปลี่ยนโครงสร้าง HTML; ใช้สไตล์ใหม่ของ select และตารางจาก styles.css r9
-- คงแถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง"
--->
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -13,7 +7,8 @@ Changelog (from r8):
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="toolbar" id="toolbar">
+  <!-- Toolbar (เหมือนเดิมของ r9) -->
+  <div class="toolbar">
     <strong class="brand">Algebra Tiles by Kru Zack</strong>
     <button class="btn" id="btn-reset">จัดระเบียบ</button>
     <button class="btn" id="btn-delete">ลบ</button>
@@ -22,8 +17,8 @@ Changelog (from r8):
     <button class="btn" id="btn-rotate">หมุน</button>
     <button class="btn" id="btn-duplicate">เพิ่มจำนวน</button>
     <button class="btn" id="btn-solution">เฉลย</button>
-    <button class="btn" id="btn-zoom-out" title="ซูมออก">🔍−</button>
-    <button class="btn" id="btn-zoom-in"  title="ซูมเข้า">🔍＋</button>
+    <button class="btn" id="btn-zoom-out">🔍−</button>
+    <button class="btn" id="btn-zoom-in">🔍＋</button>
 
     <select id="mode" title="เลือกเมนู">
       <option value="int_add">การบวกจำนวนเต็ม</option>
@@ -40,7 +35,7 @@ Changelog (from r8):
     <button class="btn help-btn" id="btn-help">?</button>
   </div>
 
-  <!-- แถวโจทย์ (พื้นหลังขาวเสมอ) -->
+  <!-- แถวโจทย์ (เหมือน r9) -->
   <div class="row row-top">
     <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
     <div class="lbl">โจทย์:</div>
@@ -52,12 +47,13 @@ Changelog (from r8):
     <div id="solution" class="solution"></div>
   </div>
 
-  <!-- แถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" -->
+  <!-- แถว normalize/กำหนดโจทย์เอง (ของ r9) -->
   <div class="row row-normalize">
-    <input id="normalizeInput" type="text" placeholder="จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" />
+    <input id="normalizeInput" placeholder="จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" />
   </div>
 
   <div class="wrap">
+    <!-- palette (เหมือน r9) -->
     <aside class="palette" id="palette">
       <div class="pal-title">กระเบื้องพีชคณิต</div>
       <div class="pal-item" data-type="x2"><div class="pal-chip chip-x2"></div><span>x<sup>2</sup></span></div>
@@ -69,33 +65,46 @@ Changelog (from r8):
       <div class="pal-note">* ต้องการจำนวนตรงข้ามใช้ปุ่ม “พลิกด้าน”</div>
     </aside>
 
+    <!-- กระดาน -->
     <section class="board-wrap">
       <div class="board" id="board">
+        <div class="grid"></div>
+
         <!-- Workspaces -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
+        <!-- r9.1: เปลี่ยน “ตาราง” เป็นโครงสร้าง <div> -->
         <div class="ws" id="ws-mul">
-          <div class="table2x2" id="mul-table">
-            <div class="cell" id="mul-op">×</div>
-            <div class="cell" id="mul-mult">?</div>
-            <div class="cell" id="mul-mcand">?</div>
-            <div class="cell"></div>
+          <div class="t" id="mul-table">
+            <div class="tr">
+              <div class="tc" id="mul-op">×</div>
+              <div class="tc" id="mul-mult">?</div>
+            </div>
+            <div class="tr">
+              <div class="tc" id="mul-mcand">?</div>
+              <div class="tc"></div>
+            </div>
           </div>
         </div>
 
         <div class="ws" id="ws-div">
-          <div class="table2x2">
-            <div class="cell" id="div-op">÷</div>
-            <div class="cell"><input id="div-quot" placeholder="?" /></div>
-            <div class="cell" id="div-divisor">?</div>
-            <div class="cell"></div>
+          <div class="t" id="div-table">
+            <div class="tr">
+              <div class="tc" id="div-op">÷</div>
+              <div class="tc"><input id="div-quot" placeholder="?" /></div>
+            </div>
+            <div class="tr">
+              <div class="tc" id="div-divisor">?</div>
+              <div class="tc"></div>
+            </div>
           </div>
         </div>
+        <!-- /r9.1 -->
       </div>
     </section>
   </div>
 
-  <!-- Help popup -->
+  <!-- Help popup (เหมือน r9) -->
   <div class="modal" id="help" style="display:none">
     <div class="card">
       <button class="close-x" id="help-x" title="ปิด">×</button>
