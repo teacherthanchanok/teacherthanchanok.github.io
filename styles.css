@@ -1,108 +1,219 @@
-/* Algebra Tiles by Kru Zack — styles.css  (quiz-integrated)  v2025-08-17a */
+/* styles.css — v2025-08-17a
+   - พื้นหลังกริด 40px สีเทาอ่อน
+   - แถบปุ่มสีม่วงไม่เลื่อนซ้ายขวา (ปุ่ม wrap หลายบรรทัด)
+   - สไตล์ modal login/quiz + แบบทดสอบ พร้อมตัวจับเวลา
+*/
+
 :root{
-  --purple:#6b21a8; --purple-2:#7c3aed; --ink:#111827; --line:#e5e7eb;
-  --blue:#4A7BD9; --green:#4CAF50; --red:#C91C1C; --yellow:#F6D267;
+  --purple:#6b21a8;
+  --purple-700:#581c87;
+  --btn:#c7d2fe;
+  --btn-text:#111827;
+  --border:#d1d5db;
+  --panel:#f8fafc;
+  --grid:#dcdcdc;
+  --green:#6cc56c;
+  --yellow:#f2c765;
+  --blue:#5a83e0;
+  --red:#d14a4a;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
 }
 
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#fff;color:#111;font-size:18px;}
-/* พื้นหลังกริดจาง ๆ */
-.grid{position:absolute;inset:0;background-image:linear-gradient(to right,#eee 1px,transparent 1px),linear-gradient(to bottom,#eee 1px,transparent 1px);background-size:30px 30px}
-
-/* Toolbar */
-.toolbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:.6rem;padding:.6rem .9rem;background:var(--purple);color:#fff;overflow:visible}
-.brand{font-size:1.15rem}
-.btn{border:0;border-radius:.7rem;padding:.55rem 1rem;background:linear-gradient(180deg,#bbd0ff,#b8c0ff);color:#000;cursor:pointer;font-size:1.05rem}
-.btn:hover{filter:brightness(.96)}
-.btn.ghost{background:#e5e7eb}
-.help-btn{margin-left:0}
-
-/* Row */
-.row{display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:1.2rem;background:#fff}
-.row .lbl{font-weight:700}
-.row .prob{font-size:1.35rem}
-.row .eq{font-size:1.35rem;margin-left:.6rem}
-.row input[type=text]{font-size:1.1rem;padding:.5rem .65rem;border:1px solid var(--line);border-radius:.5rem;min-width:18rem;background:#fff;color:#111}
-.row .btn-inline{background:#f3f4f6;color:#111;border:1px solid var(--line)}
-.solution{margin-left:.6rem}
-
-/* Layout */
-.wrap{display:flex;min-height:calc(100vh - 110px);}
-.palette{width:220px;border-right:1px solid var(--line);padding:12px;background:#f9fafb}
-.pal-title{font-weight:700;margin-bottom:.4rem}
-.pal-item{display:flex;align-items:center;gap:.6rem;padding:.6rem;border:1px solid var(--line);border-radius:.5rem;background:#fff;margin-bottom:.6rem;cursor:grab;font-size:1.05rem}
-.pal-chip{border:2px solid #222}
-.chip-x2{width:24px;height:24px;background:var(--blue)}
-.chip-negx2{width:24px;height:24px;background:var(--red)}
-.chip-x{width:48px;height:12px;background:var(--green)}
-.chip-negx{width:48px;height:12px;background:var(--red)}
-.chip-one{width:18px;height:18px;background:var(--yellow)}
-.chip-negone{width:18px;height:18px;background:var(--red)}
-.pal-note{font-size:1rem;color:#6b7280}
-
-.board-wrap{position:relative;flex:1;overflow:hidden;background:#fff}
-.board{position:absolute;inset:0;transform-origin:0 0; touch-action: none;}
-.tile{position:absolute;border:2px solid #222;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;user-select:none;color:#000; touch-action: none;}
-.tile span{pointer-events:none}
-.selected{outline:3px solid var(--purple-2)}
-.sel-rect{position:absolute;border:2px dashed var(--purple-2);background:rgba(124,58,237,.1)}
-
-.ws{position:absolute;left:40px;top:40px;right:40px;bottom:40px;border:3px solid #cbd5e1;background:#f8fafc;border-radius:10px;display:none;}
-.ws .midline{position:absolute;top:20px;bottom:20px;left:50%;width:3px;background:#94a3b8}
-
-/* ตารางแบบ <div> สำหรับคูณ/หาร */
-.table{display:table;width:100%;height:100%;border:3px solid #94a3b8;border-radius:8px;background:#fff}
-.t-row{display:table-row}
-.t-cell{display:table-cell;border:1px solid #cbd5e1;vertical-align:middle;text-align:center;font-weight:700;font-size:1.2rem;position:relative}
-.t-row.t-head .t-cell{background:#f3f4f6}
-.t-cell.op{width:180px}
-.t-cell input{font-size:1.2rem;padding:.4rem .5rem;border:1px solid #cbd5e1;border-radius:.4rem;min-width:120px;background:#fff;color:#111}
-.t-cell.blank{background:#fafafa}
-
-/* Popup */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:40}
-.card{position:relative;background:#fff;border-radius:14px;max-width:780px;width:96%;padding:16px}
-.card.small{max-width:520px}
-.close-x{position:absolute;right:8px;top:8px;background:#ef4444;border:none;color:#fff;border-radius:999px;width:34px;height:34px;cursor:pointer;font-weight:800}
-.help-title{font-weight:800;margin-bottom:.4rem}
-.help-list{margin:.3rem 1rem;font-size:1.05rem}
-.video-wrap{position:relative;padding-top:56.25%;margin-top:.5rem}
-.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%}
-.credit{font-size:1rem;color:#374151;margin-top:.6rem;text-align:center}
-.version-note{margin-top:.4rem;color:#6b7280;font-size:.9rem;text-align:center}
-.contact-row{display:flex;justify-content:center;margin-top:.6rem}
-.contact{display:inline-block}
-
-/* Quiz page */
-body.quiz-mode{background:#eff6ff;}
-.quiz{padding:18px;display:block}
-.quiz.hidden{display:none}
-.quiz-card{max-width:1000px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.06);padding:16px}
-.quiz-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.quiz-title{font-weight:800;font-size:1.3rem}
-.quiz-timer{min-width:240px}
-.quiz-timer-label{font-weight:700}
-.quiz-progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:6px}
-#quizBar{height:100%;width:0%;background:#22c55e}
-.quiz-body{margin-top:10px}
-.qitem{padding:12px;border-bottom:1px solid var(--line)}
-.qtext{font-weight:700;margin-bottom:6px}
-.qopt{display:block;padding:.45rem .6rem;margin:.35rem 0;border:1px solid #d1d5db;border-radius:.55rem;background:#f9fafb;cursor:pointer}
-.qopt input{margin-right:.5rem}
-.quiz-actions{display:flex;gap:.6rem;justify-content:flex-end}
-.btn.primary{background:#60a5fa;color:#fff}
-
-/* Responsive: palette ลงล่างในจอเล็ก */
-@media (max-width: 900px){
-  .wrap{flex-direction:column}
-  .palette{width:100%; order:2}
-  .board-wrap{order:1; min-height:55vh}
-}
-@media (max-width: 480px){
-  .palette{font-size:0.95rem}
-  .pal-item{padding:.45rem}
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Thai", Arial, sans-serif;
+  color:#111;
+  /* พื้นหลังกริด 40px สีเทาอ่อน */
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
 }
 
-/* ฟอร์มเล็ก ๆ */
-.form-row{display:flex;flex-direction:column;gap:.25rem;margin:.5rem 0}
-.form-row input{font-size:1.05rem;padding:.5rem .6rem;border:1px solid #d1d5db;border-radius:.55rem}
+/* ================= Toolbar ================= */
+#toolbar{
+  position: sticky; top:0; z-index: 50;
+  background: var(--purple);
+  color: #fff;
+  padding: 12px 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.12);
+}
+#toolbar .brand{
+  font-weight:700; font-size: 18px; margin-bottom: 8px;
+}
+#toolbar .toolgroup{
+  display:flex; flex-wrap: wrap; gap:12px;
+  /* ไม่ให้เกิดการเลื่อนซ้ายขวา */
+  overflow-x: hidden;
+}
+.btn{
+  background: var(--btn); color:var(--btn-text);
+  border: none; border-radius: 14px;
+  padding: 10px 14px; font-size: 16px;
+  box-shadow: var(--shadow); cursor: pointer;
+}
+.btn.icon{ min-width: 56px; text-align:center; }
+.btn.ghost{ background:#eef2ff; }
+.btn.primary{ background:#60a5fa; color:white; }
+.btn.full{ width:100%; }
+
+.select{
+  appearance: none;
+  background:#e5e7eb; border:none; border-radius:12px;
+  padding:10px 14px; font-size:16px; min-width: 210px;
+  box-shadow: var(--shadow);
+}
+
+/* ================= Work row ================= */
+#work-row{
+  display:flex; align-items:center; gap:12px;
+  padding: 12px 16px; background:#fff; border-bottom:1px solid var(--border);
+}
+.problem{ font-weight:700; }
+.eq{ opacity:.6; }
+.answer{
+  flex: 1 1 320px; min-width: 160px;
+  padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+  background:#fff;
+}
+.result{ min-width:96px; font-weight:700; }
+
+/* ================= Solve row ================= */
+#solve-row{
+  padding: 8px 16px; display:flex; align-items:center; gap:12px;
+}
+.solution{ font-weight:500; }
+
+/* ================= Layout ================= */
+#main{
+  display:grid; grid-template-columns: 300px 1fr; gap:14px;
+  padding: 10px 16px 48px;
+}
+
+#palette{
+  background:#fff; border:1px solid var(--border); border-radius:12px;
+  padding:12px; height: fit-content; box-shadow: var(--shadow);
+}
+#palette h3{ margin:0 0 10px; }
+.pal-list{ display:flex; flex-direction:column; gap:10px; }
+.pal-item{
+  display:flex; align-items:center; gap:10px;
+  background:#f3f4f6; border:1px solid var(--border);
+  padding:10px 12px; border-radius:12px; cursor:pointer;
+}
+.pal-item .swatch{ width:28px; height:28px; border-radius:4px; display:inline-block; border:2px solid #3333; }
+.sw-blue{ background: var(--blue); }
+.sw-red{ background: var(--red); }
+.sw-green{ background: var(--green); }
+.sw-yellow{ background: var(--yellow); }
+.bar{ width:60px; height:14px; border-radius:3px; }
+.tiny{ width:20px; height:20px; border-radius:3px; }
+.note{ color:#6b7280; font-size:12px; }
+
+#tiles-wrap{ position:relative; }
+.board{
+  position:relative; min-height: 680px;
+  background: transparent;
+  border:1px solid var(--border); border-radius:14px;
+  box-shadow: var(--shadow);
+  margin-top: 12px;
+  overflow: hidden; /* ป้องกัน scrollbar ภายในกระดาน */
+  touch-action: none; /* รองรับ pointer events บนมือถือ */
+}
+.tile{
+  position:absolute; border-radius:10px; border:3px solid #2f1b6c;
+  box-shadow: 0 6px 14px rgba(0,0,0,.08);
+  display:flex; align-items:center; justify-content:center;
+  color:#111; font-weight:800; user-select:none;
+  touch-action: none;
+}
+.tile span{ pointer-events:none; }
+.tile.selected{ outline:3px dashed #8b5cf6; outline-offset:2px; }
+.sel-rect{ position:absolute; border:2px dashed #4b5563; background: rgba(148,163,184,.12); }
+
+/* ================= Workspaces (ตารางคูณ/หาร/solve) ================= */
+.ws{ margin-top:12px; border:1px solid var(--border); background:#f9fafb; border-radius:12px; padding:10px; }
+.ws-title{ font-weight:700; margin-bottom:8px; }
+
+/* ตารางคูณ (div-based) */
+.mul-box{ display:table; border-spacing: 8px; margin:auto; }
+.mul-row{ display:table-row; }
+.mul-cell{
+  display:table-cell; min-width: 220px; min-height: 88px;
+  background:#fff; border:2px solid #cbd5e1; border-radius:12px; vertical-align:middle;
+  padding:14px; font-weight:700;
+}
+.mul-cell.label{ width:72px; text-align:center; }
+
+/* ตารางหาร (div-based) */
+.div-box{ display:table; border-spacing: 8px; margin:auto; }
+.div-row{ display:table-row; }
+.div-cell{
+  display:table-cell; min-width: 220px; min-height: 88px;
+  background:#fff; border:2px solid #cbd5e1; border-radius:12px; vertical-align:middle;
+  padding:14px; font-weight:700;
+}
+.div-cell.label{ width:72px; text-align:center; }
+.quot-input{
+  width:140px; padding:10px 12px; font-size:16px;
+  border:1px solid var(--border); border-radius:10px;
+}
+
+/* แถบ custom box */
+.custombox{
+  grid-column: 1 / -1;
+  background:#fff; border:1px solid var(--border); border-radius:12px;
+  padding:10px 12px; color:#6b7280; margin-bottom:8px;
+}
+
+/* ================= Modals ================= */
+.modal{
+  position:fixed; inset:0; background: rgba(0,0,0,.35);
+  display:none; align-items:center; justify-content:center;
+  padding:20px; z-index:100;
+}
+.modal-card{
+  width:min(680px, 92vw); background:#fff; border-radius:16px; padding:18px;
+  box-shadow: var(--shadow);
+}
+.modal-card.small{ width:min(420px, 92vw); }
+.modal-close{
+  float:right; border:none; background:#f1f5f9; width:36px; height:36px; border-radius:8px; cursor:pointer;
+}
+.modal .form-row{ margin:10px 0; }
+.modal .form-row label{ display:block; font-weight:600; margin-bottom:6px; }
+.modal .form-row input{ width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; }
+.modal .modal-body{ margin:12px 0; }
+.ver-note{ color:#9ca3af; font-size:12px; margin-top:10px; }
+
+/* ================= Quiz ================= */
+.quiz{ position:fixed; inset:0; background:#eff6ff; padding:18px; overflow:auto; z-index:60; }
+.quiz.hidden{ display:none; }
+.quiz-card{ width:min(980px, 96vw); margin:0 auto; background:#fff; border-radius:16px; padding:18px; box-shadow: var(--shadow); }
+.quiz-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.quiz-timer{ display:flex; align-items:center; gap:12px; min-width:220px; }
+.quiz-timer .bar{ width:220px; height:10px; background:#e5e7eb; border-radius:999px; overflow:hidden; }
+.bar-fill{ height:100%; width:0%; background:#16a34a; }
+.time{ font-weight:800; }
+.quiz-body{ display:flex; flex-direction:column; gap:14px; margin:16px 0; }
+.qitem{ background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:12px; }
+.qtext{ font-weight:700; margin-bottom:8px; }
+.qopt{ display:block; margin:6px 0; }
+.quiz-actions{ display:flex; justify-content:flex-end; gap:10px; }
+
+/* ================= Responsive ================= */
+@media (max-width: 960px){
+  #main{ grid-template-columns: 1fr; }
+  #palette{ order:2; }
+  #tiles-wrap{ order:1; }
+  .mul-cell, .div-cell{ min-width: 160px; }
+}
+@media (max-width: 560px){
+  #toolbar .brand{ font-size:16px; }
+  .btn{ font-size:15px; padding:9px 12px; }
+  .select{ font-size:15px; }
+  .board{ min-height:560px; }
+  .mul-cell, .div-cell{ min-width: 140px; }
+}
