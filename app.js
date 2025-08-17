@@ -1,10 +1,9 @@
 /* Version: r9.1.1
    Changelog:
-   - ไม่แก้ตรรกะสุ่ม/ตรวจคำตอบ/ลากวาง (ใช้ของเวอร์ชันก่อนหน้า)
-   - คงฮุกอินพุต div-quot ให้พิมพ์ได้ (stopPropagation)
+   - คงกฎสุ่ม/ตรวจคำตอบ/ตารางจากเวอร์ชันก่อนหน้าไว้ครบ
+   - ปรับเฉพาะ: ให้ input ในตารางพิมพ์ได้โดยไม่เริ่ม drag, ปุ่มเพิ่มจำนวนเลือกเฉพาะตัวใหม่
 */
 
-// ====== DOM ======
 const board = document.getElementById('board');
 const palette = document.getElementById('palette');
 const solutionBox = document.getElementById('solution');
@@ -21,13 +20,12 @@ const mulMcand= document.getElementById('mul-mcand');
 const divDivisor = document.getElementById('div-divisor');
 const divQuot    = document.getElementById('div-quot');
 
-// make inputs interactable (don’t start drag/select)
+// กันไม่ให้เริ่มลากเมื่อพิมพ์ใน input
 ['mousedown','touchstart','pointerdown'].forEach(evt=>{
   if (divQuot) divQuot.addEventListener(evt, e=>e.stopPropagation());
   if (answerInput) answerInput.addEventListener(evt, e=>e.stopPropagation());
 });
 
-// ====== Tiles config ======
 const TYPES = {
   x2:      {labelHTML:'x<sup>2</sup>',   w:120, h:120, color:'var(--blue)',   shape:'square', neg:'neg_x2'},
   neg_x2:  {labelHTML:'-x<sup>2</sup>',  w:120, h:120, color:'var(--red)',    shape:'square', neg:'x2'},
@@ -37,9 +35,9 @@ const TYPES = {
   neg_one: {labelHTML:'-1',              w:30,  h:30,  color:'var(--red)',    shape:'mini',   neg:'one'}
 };
 
-let tiles = [];     // {id,type,x,y,w,h}
+let tiles = [];
 let selection = new Set();
-let dragging = null; // {ids,offsets[]}
+let dragging = null;
 let selRect = null;
 let zoom = 1;
 let showSol = false;
@@ -47,24 +45,21 @@ let mode = document.getElementById('mode').value;
 
 let problemText = '';
 let problemAnswer = '';
-let answerCoef = {a2:0,a1:0,a0:0}; // สำหรับตรวจพหุนาม/จำนวนเต็ม
+let answerCoef = {a2:0,a1:0,a0:0};
 
-// ====== Utils ======
 const uid = ()=> Math.random().toString(36).slice(2);
 const clamp = (v,a,b)=> Math.max(a,Math.min(b,v));
 
-// RNG in [-15,15] \ {0}
+// [-15,15]\{0}
 function randNZ() { let v=0; while(v===0){ v = (Math.random()<.5?-1:1) * (Math.floor(Math.random()*15)+1); } return v; }
 function rint(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
 
-// Workspace visibility
 function showWorkspace(which){
   wsSolve.style.display = (which==='solve') ? 'block':'none';
   wsMul.style.display   = (which==='mul')   ? 'block':'none';
   wsDiv.style.display   = (which==='div')   ? 'block':'none';
 }
 
-// pointer to board coords
 function pt(e){
   const rect = board.getBoundingClientRect();
   const cx = (e.touches? e.touches[0].clientX : e.clientX);
@@ -90,9 +85,7 @@ function findFreeSpot(w,h){
   return {x:startX,y:startY};
 }
 
-// ====== Render ======
 function render(){
-  // tiles
   board.querySelectorAll('.tile').forEach(el=>el.remove());
   tiles.forEach(t=>{
     const el = document.createElement('div');
@@ -105,7 +98,6 @@ function render(){
     const showLabel = (t.h >= 50 || TYPES[t.type].shape!=='rect');
     el.innerHTML = showLabel ? '<span>'+TYPES[t.type].labelHTML+'</span>' : '';
 
-    // mouse + touch handlers
     const startDrag = (e)=>{
       e.stopPropagation(); e.preventDefault();
       if(!selection.has(t.id)){
@@ -128,7 +120,6 @@ function render(){
     board.appendChild(el);
   });
 
-  // selection rect
   const oldSel = board.querySelector('.sel-rect');
   if(oldSel) oldSel.remove();
   if(selRect){
@@ -147,7 +138,6 @@ function render(){
   solutionBox.innerHTML = showSol ? '<b>คำตอบที่ถูกต้อง:</b> '+problemAnswer : '';
 }
 
-// ====== Palette add ======
 palette.querySelectorAll('.pal-item').forEach(el=>{
   const addTile = ()=>{
     const type = el.dataset.type;
@@ -162,9 +152,8 @@ palette.querySelectorAll('.pal-item').forEach(el=>{
   el.addEventListener('touchstart', (e)=>{e.preventDefault(); addTile();}, {passive:false});
 });
 
-// ====== Board interactions (mouse + touch) ======
 const beginZone = (e)=>{
-  if(e.button!==undefined && e.button!==0) return; // mouse right
+  if(e.button!==undefined && e.button!==0) return;
   const p = pt(e);
   const hit = tiles.slice().reverse().find(t=> p.x>=t.x && p.x<=t.x+t.w && p.y>=t.y && p.y<=t.y+t.h);
   if(hit){
@@ -212,7 +201,6 @@ board.addEventListener('touchstart', (e)=>{e.preventDefault(); beginZone(e);},{p
 window.addEventListener('touchmove', (e)=>{e.preventDefault(); moveZone(e);},{passive:false});
 window.addEventListener('touchend', endZone);
 
-// ====== Toolbar actions ======
 document.getElementById('btn-reset').onclick = ()=>{ tiles=[]; selection.clear(); zoom=1; render(); };
 document.getElementById('btn-delete').onclick = ()=>{ tiles = tiles.filter(t=>!selection.has(t.id)); selection.clear(); render(); };
 document.getElementById('btn-flip').onclick   = ()=>{ tiles = tiles.map(t=> selection.has(t.id) ? ({...t, type:TYPES[t.type].neg}) : t); render(); };
@@ -241,25 +229,21 @@ document.getElementById('btn-duplicate').onclick = ()=>{
     return {...t, id:uid(), x:spot.x, y:spot.y};
   });
   tiles = [...tiles, ...clones];
-  // เลือกเฉพาะตัวใหม่ ไม่ให้ต้นฉบับติดมาด้วย
-  selection = new Set(clones.map(c=>c.id));
+  selection = new Set(clones.map(c=>c.id)); // เลือกเฉพาะตัวใหม่
   render();
 };
 document.getElementById('btn-zoom-in').onclick  = ()=>{ zoom = clamp(zoom*1.25, .4, 2.2); render(); };
 document.getElementById('btn-zoom-out').onclick = ()=>{ zoom = clamp(zoom*0.8,  .4, 2.2); render(); };
 
-// popup open/close + stop video on close
 const help = document.getElementById('help');
 const ytframe = document.getElementById('ytframe');
 document.getElementById('btn-help').onclick   = ()=> help.style.display='flex';
 document.getElementById('help-x').onclick     = closeHelp;
 function closeHelp(){
   help.style.display='none';
-  // stop video by resetting src
   if (ytframe) { const src = ytframe.src; ytframe.src = src; }
 }
 
-// ====== Mode & examples ======
 document.getElementById('mode').onchange = (e)=>{ mode = e.target.value; newExample(); };
 document.getElementById('btn-new').onclick = ()=> newExample();
 document.getElementById('btn-solution').onclick = (e)=>{
@@ -268,7 +252,6 @@ document.getElementById('btn-solution').onclick = (e)=>{
   render();
 };
 
-// ====== Parser (รับ () และ [] ) ======
 function sanitizeInput(s){
   return String(s||'')
     .replace(/−/g,'-')
@@ -334,7 +317,6 @@ function coefToHTML({a2,a1,a0}){
   return parts.length? parts.join(' + ').replace(/\+ -/g,'+ (-') : '0';
 }
 
-// ====== Formatting helpers per rule (ของเดิม) ======
 const fmtTerm = {
   x2(k, isLeadDeg2){
     if(k===1)  return 'x<sup>2</sup>';
@@ -380,7 +362,6 @@ function mulCoef(A,B){
   return res;
 }
 
-// ====== Example generator (ของเดิม r9.x) ======
 function newExample(){
   showSol=false; document.getElementById('btn-solution').textContent='เฉลย';
   answerInput.value=''; checkResult.textContent='';
@@ -428,7 +409,7 @@ function newExample(){
       mulMcand.innerHTML = coefToHTML(P.coef).replace(/\+ \(-/g,'+ (-');
     }
   }else if(mode==='poly_div'){
-    // เวอร์ชันนี้ยังคงตรรกะเดิมของ r9.x (ไม่ได้ขอเปลี่ยน)
+    // ตัวหารเป็น (x + d) และคุมสัมประสิทธิ์ที่แสดงให้อ่านง่าย
     let a,b,d,ok=false;
     while(!ok){
       a = randNZ(); b = randNZ(); d = randNZ();
@@ -439,11 +420,9 @@ function newExample(){
     const dividendHTML = `[${(a===1?'':a===-1?'-':'') + 'x<sup>2</sup>'} + ${(a*d+b)>=0?'':'('}${(a*d+b)>=0?(a*d+b): (a*d+b)+')'}x + ${(b*d)>=0?'':'('}${(b*d)>=0?(b*d):(b*d)+')'}]`
       .replace(/\+ -/g,'+ (-');
     const divisorHTML = `[x${d>=0?'+':''}${d}]`;
-
     problemText = `${dividendHTML} ÷ ${divisorHTML}`;
     answerCoef = {a2:0, a1:a, a0:b};
     problemAnswer = coefToHTML(answerCoef);
-
     showWorkspace('div');
     divDivisor.innerHTML = `x${d>=0?'+':''}${d}`;
     if (divQuot) divQuot.value='';
@@ -462,7 +441,6 @@ function newExample(){
   render();
 }
 
-// ====== Answer checking ======
 checkBtn.onclick = ()=>{
   checkResult.textContent=''; checkResult.style.color='';
   const givenRaw = answerInput.value;
@@ -493,7 +471,6 @@ checkBtn.onclick = ()=>{
 };
 function equalsCoef(a,b){ return a.a2===b.a2 && a.a1===b.a1 && a.a0===b.a0; }
 
-// ====== Init ======
 document.getElementById('btn-new').focus();
 newExample();
 render();
