@@ -1,9 +1,4 @@
-<!--
-Version: 2025-08-17 r9
-Changelog (from r8):
-- ไม่เปลี่ยนโครงสร้าง HTML; ใช้สไตล์ใหม่ของ select และตารางจาก styles.css r9
-- คงแถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง"
--->
+<!-- Algebra Tiles by Kru Zack — index.html  (quiz-integrated)  v2025-08-17a -->
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -13,8 +8,10 @@ Changelog (from r8):
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="toolbar" id="toolbar">
+  <!-- Toolbar (คงของเดิม + เพิ่มเมนูแบบทดสอบ) -->
+  <div class="toolbar">
     <strong class="brand">Algebra Tiles by Kru Zack</strong>
+
     <button class="btn" id="btn-reset">จัดระเบียบ</button>
     <button class="btn" id="btn-delete">ลบ</button>
     <button class="btn" id="btn-flip">พลิกด้าน</button>
@@ -22,10 +19,12 @@ Changelog (from r8):
     <button class="btn" id="btn-rotate">หมุน</button>
     <button class="btn" id="btn-duplicate">เพิ่มจำนวน</button>
     <button class="btn" id="btn-solution">เฉลย</button>
-    <button class="btn" id="btn-zoom-out" title="ซูมออก">🔍−</button>
-    <button class="btn" id="btn-zoom-in"  title="ซูมเข้า">🔍＋</button>
+    <button class="btn" id="btn-zoom-out">🔍−</button>
+    <button class="btn" id="btn-zoom-in">🔍＋</button>
 
+    <!-- เลือกโหมด (เพิ่ม Pre-test ไว้บนสุด และ Post-test ไว้ล่างสุด) -->
     <select id="mode" title="เลือกเมนู">
+      <option value="pretest">📝 แบบทดสอบก่อนเรียน</option>
       <option value="int_add">การบวกจำนวนเต็ม</option>
       <option value="int_sub">การลบจำนวนเต็ม</option>
       <option value="int_mul">การคูณจำนวนเต็ม</option>
@@ -35,29 +34,46 @@ Changelog (from r8):
       <option value="poly_mul">การคูณพหุนาม</option>
       <option value="poly_div">การหารพหุนาม</option>
       <option value="solve_lin">การแก้สมการ</option>
+      <option value="posttest">📝 แบบทดสอบหลังเรียน</option>
     </select>
 
+    <!-- ปุ่มเข้าสู่ระบบ (👤) และปุ่มช่วยเหลือ (?) -->
+    <button class="btn ghost" id="btn-login">👤</button>
     <button class="btn help-btn" id="btn-help">?</button>
   </div>
 
-  <!-- แถวโจทย์ (พื้นหลังขาวเสมอ) -->
-  <div class="row row-top">
+  <!-- แถวโจทย์/ตรวจคำตอบ (สำหรับโหมด Tiles ปกติ) -->
+  <div class="row" id="work-row">
     <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
     <div class="lbl">โจทย์:</div>
     <div id="problem" class="prob"></div>
     <div class="eq">=</div>
     <input type="text" id="answerInput" placeholder="พิมพ์คำตอบ" />
     <button class="btn btn-inline" id="btn-check">ตรวจสอบคำตอบ</button>
-    <div id="checkResult" class="check-msg"></div>
+    <div id="checkResult"></div>
     <div id="solution" class="solution"></div>
   </div>
 
-  <!-- แถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" -->
-  <div class="row row-normalize">
-    <input id="normalizeInput" type="text" placeholder="จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" />
-  </div>
+  <!-- หน้าแบบทดสอบ (ซ่อนเมื่อไม่ใช้งาน) -->
+  <section id="quizPage" class="quiz hidden" aria-hidden="true">
+    <div class="quiz-card">
+      <div class="quiz-head">
+        <div class="quiz-title" id="quizTitle">แบบทดสอบ</div>
+        <div class="quiz-timer">
+          <div class="quiz-timer-label">เหลือเวลา: <span id="quizTime">30:00</span></div>
+          <div class="quiz-progress"><div id="quizBar"></div></div>
+        </div>
+      </div>
+      <form id="quizForm" class="quiz-body"></form>
+      <div class="quiz-actions">
+        <button class="btn primary" id="quizSubmit" type="button">ส่งคำตอบ</button>
+        <button class="btn" id="quizExit" type="button">ออกจากแบบทดสอบ</button>
+      </div>
+    </div>
+  </section>
 
-  <div class="wrap">
+  <!-- พื้นที่กระเบื้อง/กระดาน -->
+  <div class="wrap" id="tiles-wrap">
     <aside class="palette" id="palette">
       <div class="pal-title">กระเบื้องพีชคณิต</div>
       <div class="pal-item" data-type="x2"><div class="pal-chip chip-x2"></div><span>x<sup>2</sup></span></div>
@@ -71,31 +87,45 @@ Changelog (from r8):
 
     <section class="board-wrap">
       <div class="board" id="board">
+        <div class="grid"></div>
+
         <!-- Workspaces -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
+        <!-- คูณ -->
         <div class="ws" id="ws-mul">
-          <div class="table2x2" id="mul-table">
-            <div class="cell" id="mul-op">×</div>
-            <div class="cell" id="mul-mult">?</div>
-            <div class="cell" id="mul-mcand">?</div>
-            <div class="cell"></div>
+          <div class="table divtable" id="mul-table">
+            <div class="t-row t-head">
+              <div class="t-cell op" id="mul-op">×</div>
+              <div class="t-cell" id="mul-mult">?</div>
+            </div>
+            <div class="t-row">
+              <div class="t-cell" id="mul-mcand">?</div>
+              <div class="t-cell blank"></div>
+            </div>
           </div>
         </div>
 
+        <!-- หาร -->
         <div class="ws" id="ws-div">
-          <div class="table2x2">
-            <div class="cell" id="div-op">÷</div>
-            <div class="cell"><input id="div-quot" placeholder="?" /></div>
-            <div class="cell" id="div-divisor">?</div>
-            <div class="cell"></div>
+          <div class="table divtable">
+            <div class="t-row t-head">
+              <div class="t-cell op" id="div-op">÷</div>
+              <div class="t-cell">
+                <input id="div-quot" placeholder="?" />
+              </div>
+            </div>
+            <div class="t-row">
+              <div class="t-cell" id="div-divisor">?</div>
+              <div class="t-cell blank"></div>
+            </div>
           </div>
         </div>
       </div>
     </section>
   </div>
 
-  <!-- Help popup -->
+  <!-- โมดัลช่วยเหลือ -->
   <div class="modal" id="help" style="display:none">
     <div class="card">
       <button class="close-x" id="help-x" title="ปิด">×</button>
@@ -114,8 +144,44 @@ Changelog (from r8):
         <div><b>จัดทำโดย นางสาวธัญชนก แย้มมาก</b></div>
         <div>โรงเรียนบางแม่หม้ายรัฐราษฎร์รังสฤษดิ์</div>
       </div>
+      <div class="version-note">เวอร์ชัน: quiz-integrated v2025-08-17a</div>
       <div class="contact-row">
         <a class="btn contact" href="https://line.me/ti/p/4X5zjQ9EjJ" target="_blank" rel="noopener">📞 ติดต่อคุณครู</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- โมดัลผลลัพธ์แบบทดสอบ -->
+  <div class="modal" id="quizModal" style="display:none">
+    <div class="card small">
+      <button class="close-x" id="quizModalX" title="ปิด">×</button>
+      <div class="help-title" id="quizModalTitle">ผลลัพธ์</div>
+      <div id="quizModalBody" class="quiz-modal-body"></div>
+      <div class="quiz-actions" style="margin-top:.7rem">
+        <button class="btn" id="quizModalClose">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- โมดัลเข้าสู่ระบบอย่างง่าย -->
+  <div class="modal" id="loginModal" style="display:none">
+    <div class="card small">
+      <button class="close-x" id="loginModalX" title="ปิด">×</button>
+      <div class="help-title">เข้าสู่ระบบสำหรับบันทึกคะแนน</div>
+      <div class="form-row">
+        <label>ชื่อจริง</label>
+        <input id="inpName" placeholder="ชื่อจริง">
+      </div>
+      <div class="form-row">
+        <label>นามสกุล</label>
+        <input id="inpLastname" placeholder="นามสกุล">
+      </div>
+      <div class="form-row">
+        <label>ระดับชั้น</label>
+        <input id="inpClass" placeholder="ตัวอย่าง: ม.2/1">
+      </div>
+      <div class="quiz-actions">
+        <button class="btn primary" id="btnDoLogin" type="button">บันทึก</button>
       </div>
     </div>
   </div>
