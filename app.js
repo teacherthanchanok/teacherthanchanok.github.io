@@ -1,6 +1,7 @@
-/* Version: r9.2 — 2025-08-17
-   Base taken from your last provided file.
-   Minor safety: guard null for div-quot / answerInput listeners.
+/* Version: r9.1.1
+   Changelog:
+   - ไม่แก้ตรรกะสุ่ม/ตรวจคำตอบ/ลากวาง (ใช้ของเวอร์ชันก่อนหน้า)
+   - คงฮุกอินพุต div-quot ให้พิมพ์ได้ (stopPropagation)
 */
 
 // ====== DOM ======
@@ -240,7 +241,8 @@ document.getElementById('btn-duplicate').onclick = ()=>{
     return {...t, id:uid(), x:spot.x, y:spot.y};
   });
   tiles = [...tiles, ...clones];
-  clones.forEach(c=> selection.add(c.id));
+  // เลือกเฉพาะตัวใหม่ ไม่ให้ต้นฉบับติดมาด้วย
+  selection = new Set(clones.map(c=>c.id));
   render();
 };
 document.getElementById('btn-zoom-in').onclick  = ()=>{ zoom = clamp(zoom*1.25, .4, 2.2); render(); };
@@ -254,7 +256,7 @@ document.getElementById('help-x').onclick     = closeHelp;
 function closeHelp(){
   help.style.display='none';
   // stop video by resetting src
-  const src = ytframe.src; ytframe.src = src;
+  if (ytframe) { const src = ytframe.src; ytframe.src = src; }
 }
 
 // ====== Mode & examples ======
@@ -332,44 +334,40 @@ function coefToHTML({a2,a1,a0}){
   return parts.length? parts.join(' + ').replace(/\+ -/g,'+ (-') : '0';
 }
 
-// ====== Formatting helpers per rule ======
+// ====== Formatting helpers per rule (ของเดิม) ======
 const fmtTerm = {
   x2(k, isLeadDeg2){
-    // ถ้าดีกรี 2 และเป็นพจน์นำเป็นลบ: ไม่ครอบ
     if(k===1)  return 'x<sup>2</sup>';
     if(k===-1) return isLeadDeg2 ? '-x<sup>2</sup>' : '(-x<sup>2</sup>)';
     return (k<0 && !isLeadDeg2) ? `(${k}x<sup>2</sup>)` : `${k}x<sup>2</sup>`;
   },
-  x1(k, deg){ // deg = 1 หรือ 2
+  x1(k, deg){
     if(k===1)  return 'x';
     if(k===-1) return (deg===1 ? '-x' : '(-x)');
     return (k<0 && deg===2) ? `(${k}x)` : `${k}x`;
   },
-  c(k, deg){ // deg = 1 หรือ 2
-    return (k<0) ? `(${k})` : `${k}`;
-  }
+  c(k){ return (k<0) ? `(${k})` : `${k}`; }
 };
 
-function buildPoly(deg){ // return {coef:{a2,a1,a0}, html:'[...]'}
+function buildPoly(deg){
   if(deg===2){
     const a = randNZ(), b = randNZ(), c = randNZ();
-    const t2 = fmtTerm.x2(a, /*lead*/true);
+    const t2 = fmtTerm.x2(a, true);
     const t1 = fmtTerm.x1(b, 2);
-    const t0 = fmtTerm.c(c, 2);
-    const inner = [t2, (b>=0? ' + ' : ' + ')+t1, (c>=0? ' + ' : ' + ')+t0]
+    const t0 = fmtTerm.c(c);
+    const inner = [t2, ' + '+t1, ' + '+t0]
       .join('').replace(/\+ \(-/g,'+ (-').replace(/\+ -/g,'+ (-');
     return {coef:{a2:a,a1:b,a0:c}, html:`[${inner}]`};
   }else{
     const b = randNZ(), c = randNZ();
     const t1 = fmtTerm.x1(b, 1);
-    const t0 = fmtTerm.c(c, 1);
-    const inner = [t1, (c>=0? ' + ' : ' + ')+t0]
+    const t0 = fmtTerm.c(c);
+    const inner = [t1, ' + '+t0]
       .join('').replace(/\+ \(-/g,'+ (-').replace(/\+ -/g,'+ (-');
     return {coef:{a2:0,a1:b,a0:c}, html:`[${inner}]`};
   }
 }
 
-// Multiply two polynomials up to deg2
 function addCoef(A,B){ return {a2:A.a2+B.a2, a1:A.a1+B.a1, a0:A.a0+B.a0}; }
 function mulCoef(A,B){
   const res = {a2:0,a1:0,a0:0};
@@ -382,7 +380,7 @@ function mulCoef(A,B){
   return res;
 }
 
-// ====== Example generator ======
+// ====== Example generator (ของเดิม r9.x) ======
 function newExample(){
   showSol=false; document.getElementById('btn-solution').textContent='เฉลย';
   answerInput.value=''; checkResult.textContent='';
@@ -403,13 +401,11 @@ function newExample(){
     const res=a*b; answerCoef={a2:0,a1:0,a0:res}; problemAnswer=String(res);
     showWorkspace('mul'); mulMult.textContent=b; mulMcand.textContent=a;
   }else if(mode==='int_div'){
-    // ให้ผู้ใช้กรอกผลลัพธ์ในช่อง (quotient)
     const divisor=randNZ(), q=randNZ(), dividend=divisor*q;
     problemText = `${dividend} ÷ ${divisor<0?`(${divisor})`:divisor}`;
     answerCoef={a2:0,a1:0,a0:q}; problemAnswer=String(q);
-    showWorkspace('div'); divDivisor.textContent=divisor; if(divQuot) divQuot.value='';
+    showWorkspace('div'); divDivisor.textContent=divisor; if (divQuot) divQuot.value='';
   }else if(mode==='poly_add' || mode==='poly_sub' || mode==='poly_mul'){
-    // สุ่มดีกรี 1 หรือ 2 แบบ 50/50
     const degP = Math.random()<.5 ? 2 : 1;
     const degQ = Math.random()<.5 ? 2 : 1;
     const P = buildPoly(degP);
@@ -428,16 +424,14 @@ function newExample(){
       answerCoef = mulCoef(P.coef, Q.coef);
       problemAnswer = coefToHTML(answerCoef);
       showWorkspace('mul');
-      // เติมตัวอย่างตัวคูณ/ตัวตั้ง (แบบข้อความ)
       mulMult.innerHTML = coefToHTML(Q.coef).replace(/\+ \(-/g,'+ (-');
       mulMcand.innerHTML = coefToHTML(P.coef).replace(/\+ \(-/g,'+ (-');
     }
   }else if(mode==='poly_div'){
-    // บังคับตัวหารเป็น (x + d) และบังคับให้สัมประสิทธิ์ที่ “แสดงใน dividend” อยู่ในช่วง [-15,15]
+    // เวอร์ชันนี้ยังคงตรรกะเดิมของ r9.x (ไม่ได้ขอเปลี่ยน)
     let a,b,d,ok=false;
     while(!ok){
       a = randNZ(); b = randNZ(); d = randNZ();
-      const A2 = a;
       const A1 = a*d + b;
       const A0 = b*d;
       if( Math.abs(A1)<=15 && Math.abs(A0)<=15 ){ ok=true; }
@@ -452,9 +446,8 @@ function newExample(){
 
     showWorkspace('div');
     divDivisor.innerHTML = `x${d>=0?'+':''}${d}`;
-    if(divQuot) divQuot.value='';
+    if (divQuot) divQuot.value='';
   }else if(mode==='solve_lin'){
-    // สุ่มในช่วง [-15,15]\{0} ให้ coefficients ที่แสดงไม่เกินช่วง
     let a,b,c,x,d,ok=false;
     while(!ok){
       a=randNZ(); b=randNZ(); c=randNZ(); x = rint(-15,15); if(x===0) continue;
