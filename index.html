@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- r9.3: keep existing UI; workspaces' tables are div-based; full logic in app.js -->
   <div class="toolbar">
     <strong class="brand">Algebra Tiles by Kru Zack</strong>
     <button class="btn" id="btn-reset">จัดระเบียบ</button>
@@ -19,7 +20,7 @@
     <button class="btn" id="btn-zoom-out">🔍−</button>
     <button class="btn" id="btn-zoom-in">🔍＋</button>
 
-    <select id="mode" title="เลือกเมนู">
+    <select id="mode" title="เลือกเมนู" class="mode-select">
       <option value="int_add">การบวกจำนวนเต็ม</option>
       <option value="int_sub">การลบจำนวนเต็ม</option>
       <option value="int_mul">การคูณจำนวนเต็ม</option>
@@ -34,19 +35,15 @@
     <button class="btn help-btn" id="btn-help">?</button>
   </div>
 
-  <div class="row row-top">
+  <div class="row">
     <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
     <div class="lbl">โจทย์:</div>
     <div id="problem" class="prob"></div>
     <div class="eq">=</div>
     <input type="text" id="answerInput" placeholder="พิมพ์คำตอบ" />
     <button class="btn btn-inline" id="btn-check">ตรวจสอบคำตอบ</button>
-    <div id="checkResult" class="check-msg"></div>
+    <div id="checkResult"></div>
     <div id="solution" class="solution"></div>
-  </div>
-
-  <div class="row row-normalize">
-    <input id="normalizeInput" placeholder="จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" />
   </div>
 
   <div class="wrap">
@@ -68,33 +65,36 @@
         <!-- Workspaces -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
-        <!-- ตารางแบบ <div> -->
+        <!-- Multiply (int / poly) : div-table -->
         <div class="ws" id="ws-mul">
-          <div class="t" id="mul-table">
-            <div class="tr">
-              <div class="tc" id="mul-op">×</div>
-              <div class="tc" id="mul-mult">?</div>
+          <div class="table-like" id="mul-table">
+            <div class="trow">
+              <div class="tcell tcell-op" id="mul-op">×</div>
+              <div class="tcell tcell-top" id="mul-mult">?</div>
             </div>
-            <div class="tr">
-              <div class="tc" id="mul-mcand">?</div>
-              <div class="tc"></div>
+            <div class="trow">
+              <div class="tcell tcell-left" id="mul-mcand">?</div>
+              <div class="tcell tcell-body"></div>
             </div>
           </div>
         </div>
 
+        <!-- Divide (int / poly) : div-table -->
         <div class="ws" id="ws-div">
-          <div class="t" id="div-table">
-            <div class="tr">
-              <div class="tc" id="div-op">÷</div>
-              <div class="tc"><input id="div-quot" placeholder="?" /></div>
+          <div class="table-like" id="div-table">
+            <div class="trow">
+              <div class="tcell tcell-op" id="div-op">÷</div>
+              <div class="tcell tcell-top">
+                <input id="div-quot" placeholder="?" />
+              </div>
             </div>
-            <div class="tr">
-              <div class="tc" id="div-divisor">?</div>
-              <div class="tc"></div>
+            <div class="trow">
+              <div class="tcell tcell-left" id="div-divisor">?</div>
+              <div class="tcell tcell-body"></div>
             </div>
           </div>
         </div>
-        <!-- /ตารางแบบ <div> -->
+        <!-- /Workspaces -->
       </div>
     </section>
   </div>
@@ -121,7 +121,6 @@
       <div class="contact-row">
         <a class="btn contact" href="https://line.me/ti/p/4X5zjQ9EjJ" target="_blank" rel="noopener">📞 ติดต่อคุณครู</a>
       </div>
-      <div class="version-note">Version: r9.1.1</div>
     </div>
   </div>
 
