@@ -2,16 +2,14 @@
    Changelog:
    - พื้นหลังทั้งหน้าเป็นกริด 40px สีเทาอ่อน
    - แถบเครื่องมือ (สีม่วง) ปิดการเลื่อนแนวนอน ใช้ flex-wrap ให้ปุ่มห่อบรรทัดเมื่อตีบ
-   - เพิ่มบรรทัด version-note ใน popup
+   - เพิ่มเวอร์ชันสีเทาเล็ก ๆ ใน popup
 */
 
-/* === Base variables (เหมือน r9.1) === */
 :root{
   --purple:#6b21a8; --purple-2:#7c3aed; --ink:#111827; --line:#e5e7eb;
   --blue:#4A7BD9; --green:#4CAF50; --red:#C91C1C; --yellow:#F6D267;
 }
 
-/* พื้นหลังกริด 40px สีเทาอ่อน */
 html, body { height:100%; }
 *{box-sizing:border-box}
 body{
@@ -22,16 +20,15 @@ body{
   background-image:
     linear-gradient(to right, rgba(0,0,0,.08) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(0,0,0,.08) 1px, transparent 1px);
-  overflow-x:hidden; /* ป้องกันการเกิด scroll แกน X ทั้งเพจ */
+  overflow-x:hidden; /* กันการ scroll แนวนอนทั้งหน้า */
 }
 
-/* Toolbar: ไม่เลื่อนซ้ายขวา, ให้ปุ่มห่อบรรทัด */
 .toolbar{
   position:sticky;top:0;z-index:10;
   display:flex;align-items:center;gap:.6rem;
   padding:.6rem .9rem;background:var(--purple);color:#fff;
-  flex-wrap:wrap;            /* ให้ห่อบรรทัดเมื่อพื้นที่ไม่พอ */
-  overflow-x:hidden;         /* กันเลื่อนแนวนอน */
+  flex-wrap:wrap;       /* ให้ปุ่มลงบรรทัดใหม่ ไม่ให้เกิดแถบเลื่อนแนวนอน */
+  overflow-x:hidden;
 }
 .brand{font-size:1.15rem}
 .btn{
@@ -56,7 +53,6 @@ body{
 .solution{margin-left:.6rem}
 .check-msg{min-width:6.5rem}
 
-/* แถว normalize/กำหนดโจทย์เอง */
 .row-normalize{
   padding:.25rem .9rem .7rem;background:#fff;border-bottom:1px solid var(--line)
 }
@@ -79,13 +75,12 @@ body{
 
 .board-wrap{position:relative;flex:1;overflow:hidden;background:#fff}
 .board{position:absolute;inset:0;transform-origin:0 0;touch-action:none}
-.grid{position:absolute;inset:0;pointer-events:none} /* พื้นที่กริดจริงบนบอร์ดไม่ต้องทับพื้นหลังทั้งหน้า */
+.grid{position:absolute;inset:0;pointer-events:none}
 .tile{position:absolute;border:2px solid #222;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;user-select:none;color:#000;touch-action:none}
 .tile span{pointer-events:none}
 .selected{outline:3px solid var(--purple-2)}
 .sel-rect{position:absolute;border:2px dashed var(--purple-2);background:rgba(124,58,237,.1)}
 
-/* Workspaces */
 .ws{position:absolute;left:40px;top:40px;right:40px;bottom:40px;border:3px solid #cbd5e1;background:#f8fafc;border-radius:10px;display:none;}
 .ws .midline{position:absolute;top:20px;bottom:20px;left:50%;width:3px;background:#94a3b8}
 
@@ -116,10 +111,7 @@ body{
 .credit{font-size:1rem;color:#374151;margin-top:.6rem;text-align:center}
 .contact-row{display:flex;justify-content:center;margin-top:.6rem}
 .contact{display:inline-block}
-/* เวอร์ชันใน popup */
-.version-note{
-  margin-top:.4rem;text-align:center;color:#6b7280;font-size:.9rem
-}
+.version-note{margin-top:.4rem;text-align:center;color:#6b7280;font-size:.9rem}
 
 /* Responsive */
 @media (max-width: 900px){
