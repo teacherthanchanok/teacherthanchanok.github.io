@@ -1,4 +1,4 @@
-/* Algebra Tiles by Kru Zack — app.js  (quiz-integrated)  v2025-08-17a
+=/* Algebra Tiles by Kru Zack — app.js  (quiz-integrated)  v2025-08-17a
    เพิ่มโหมดแบบทดสอบก่อน/หลังเรียน + ตัวจับเวลา + บันทึกคะแนนไป Google Sheet (ถ้า login แล้ว)
    หมายเหตุ: โค้ดส่วนกระเบื้อง/กฎสุ่มดั้งเดิมยังคงเดิมทั้งหมด
 */
