@@ -1,10 +1,10 @@
 /*
-Version: 2025-08-17 r9
-Changelog (from r8):
-- เพิ่มขนาดตัวอักษร select#mode ให้เท่าปุ่ม (.btn)
-- ปรับ responsive ของ workspaces ตารางคูณ/หาร: ให้กล่อง ws เลื่อนแนวนอนได้เมื่อแคบ (แนวทาง responsive-table)
-- ตั้ง min-width ให้ .table2x2 และเปิด inertia scroll (touch)
+Version: 2025-08-18 r10.5 (merge r9 logic + r10.4 UI)
+- นำพื้นหลังกริดสีเทาอ่อนแบบ r9 กลับมา
+- คง UI r10.4 (โมดัล ปุ่ม 📖 และ 💡)
+- เพิ่ม Media Query เฉพาะ Medium Mobile (≈360–400px)
 */
+
 :root{
   --purple:#6b21a8; --purple-2:#7c3aed; --ink:#111827; --line:#e5e7eb;
   --blue:#4A7BD9; --green:#4CAF50; --red:#C91C1C; --yellow:#F6D267;
@@ -20,6 +20,7 @@ body{
   font-size:18px;
   overflow-x:hidden;
 
+  /* พื้นหลังกริด 40px สีเทาอ่อน (จาก r9) */
   background-size:40px 40px;
   background-image:
     linear-gradient(to right, var(--grid) 1px, transparent 1px),
@@ -32,6 +33,7 @@ body{
   display:flex;align-items:center;gap:.6rem;
   padding:.6rem .9rem;background:var(--purple);color:#fff;
 
+  /* เหมือน r9: ไม่ให้ขยับแคนวาส แต่ให้บาร์เลื่อนแนวนอนได้เมื่อรายการปุ่มเยอะ */
   flex-wrap:nowrap;
   overflow-x:auto;
   -webkit-overflow-scrolling:touch;
@@ -46,7 +48,7 @@ body{
 .btn:hover{filter:brightness(.96)}
 .help-btn{margin-left:auto}
 
-/* ทำให้ select ดูเท่ากับปุ่ม */
+/* select ให้เท่าปุ่ม (ตาม r9) */
 .toolbar select#mode{
   font-size:1.05rem;
   padding:.55rem 1rem;
@@ -56,7 +58,6 @@ body{
   color:#000;
 }
 
-/* โซนโจทย์ */
 .row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
 .row-top{
   padding:.7rem .9rem;border-bottom:1px solid var(--line);
@@ -70,7 +71,7 @@ body{
 .solution{margin-left:.6rem}
 .check-msg{min-width:6.5rem}
 
-/* แถว normalize */
+/* normalize input */
 .row-normalize{padding:.25rem .9rem .7rem;background:#fff;border-bottom:1px solid var(--line)}
 #normalizeInput{width:100%;max-width:1100px;border:1px solid var(--line);border-radius:.5rem;padding:.5rem .65rem;font-size:1.05rem;background:#fff;color:#111}
 
@@ -95,115 +96,53 @@ body{
 .selected{outline:3px solid var(--purple-2)}
 .sel-rect{position:absolute;border:2px dashed var(--purple-2);background:rgba(124,58,237,.1)}
 
-/* Workspaces + Responsive table approach */
+/* Workspaces (ตารางคูณ/หารแบบ div-table) */
 .ws{
   position:absolute;left:40px;top:40px;right:40px;bottom:40px;
   border:3px solid #cbd5e1;background:#f8fafc;border-radius:10px;display:none;
-  /* เมื่อจอแคบให้เลื่อนแนวนอนได้ (แนวคิด responsive-table) */
   overflow:auto;
   -webkit-overflow-scrolling:touch;
 }
 .ws .midline{position:absolute;top:20px;bottom:20px;left:50%;width:3px;background:#94a3b8}
 
-/* ตาราง 2x2 แบบ Grid */
 .table2x2{
   position:absolute;left:40px;top:80px;right:40px;bottom:40px;
-  border:3px solid #94a3b8;border-radius:8px;
-  display:grid;grid-template-columns:180px 1fr;grid-template-rows:160px 1fr;background:#fff;
-  min-width:560px; /* ให้มีความกว้างขั้นต่ำสำหรับเลื่อน */
+  border:3px solid #94a3b8;border-radius:8px;background:#fff;
+
+  display:table; width:max(560px, 100%);
+  table-layout:fixed;
 }
-.cell{border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;padding:.25rem}
+.table2x2 .row{display:table-row}
+.table2x2 .cell{display:table-cell;border:1px solid #cbd5e1;vertical-align:middle;text-align:center;font-weight:700;font-size:1.2rem;padding:.25rem}
 .cell input{font-size:1.15rem;padding:.4rem .5rem;border:1px solid #cbd5e1;border-radius:.4rem;width:100%;max-width:100%;min-width:0;background:#fff;color:#111}
 
-/* Popup */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:40}
+/* Modal base */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:40}
+.modal.show{display:flex}
 .card{position:relative;background:#fff;border-radius:14px;max-width:780px;width:96%;padding:16px}
-.close-x{position:absolute;right:8px;top:8px;background:#ef4444;border:none;color:#fff;border-radius:999px;width:34px;height:34px;cursor:pointer;font-weight:800}
-.help-title{font-weight:800;margin-bottom:.4rem}
-.help-list{margin:.3rem 1rem;font-size:1.05rem}
-.video-wrap{position:relative;padding-top:56.25%;margin-top:.5rem}
+.close-x{position:absolute;right:8px;top:8px;border:0;background:#eee;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer}
+.muted{color:#6b7280}
+.right{text-align:right}
+
+/* resources list */
+.res-list{margin:0;padding-left:1.1rem;line-height:1.8}
+.res-list li+li{margin-top:.25rem}
+
+/* video */
+.video-wrap{position:relative;padding-top:56.25%}
 .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%}
-.credit{font-size:1rem;color:#374151;margin-top:.6rem;text-align:center}
-.contact-row{display:flex;justify-content:center;margin-top:.6rem}
-.contact{display:inline-block}
 
-/* Responsive */
-@media (max-width: 900px){
-  .wrap{flex-direction:column}
-  .palette{width:100%; order:2}
-  .board-wrap{order:1; min-height:55vh}
-}
-@media (max-width: 480px){
-  .palette{font-size:0.95rem}
-  .pal-item{padding:.45rem}
-  .row input[type=text]{min-width:12rem}
-}
-/* มือถือแนวนอน / หน้าต่างเตี้ย: กระชับตารางและพิมพ์อ่านง่าย */
-@media (orientation: landscape) and (max-height: 520px){
-  .table2x2{grid-template-columns:140px 1fr;grid-template-rows:120px 1fr;min-width:480px}
-  .cell{font-size:1.05rem}
-}
-/* Breakpoint สำหรับ Medium Mobile (360px–400px) */
-@media (min-width: 360px) and (max-width: 400px) {
-  body {
-    font-size: 16px; /* ฟอนต์หลักอ่านง่ายขึ้น */
-  }
+/* grid2 */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.grid2 label{display:flex;flex-direction:column;gap:.35rem}
 
-  .toolbar button,
-  .toolbar select#mode,
-  #new-question {
-    font-size: 15px;
-    padding: 10px 14px;  /* เพิ่มพื้นที่กด */
-    min-width: 44px;     /* ขนาดสัมผัสมาตรฐานนิ้วโป้ง */
-    min-height: 44px;
-  }
-
-  input#answer {
-    font-size: 16px;
-    padding: 8px 10px;
-    min-width: 80px;    /* ให้ไม่เล็กเกินไป */
-    min-height: 40px;
-  }
-
-  #problem {
-    font-size: 18px; /* ขยายโจทย์ให้ชัดเจน */
-  }
-}
 /* 🎯 Medium Mobile: 360–400px */
-@media screen and (min-width: 360px) and (max-width: 400px) {
-  body {
-    font-size: 16px;   /* ขยายให้พอดีกับการอ่าน */
-    line-height: 1.5;
-  }
-
-  button,
-  input,
-  select,
-  textarea {
-    font-size: 16px;   /* ตาม guideline ของ iOS/Android */
-    padding: 12px 16px;
-    min-height: 44px;  /* แตะง่าย ไม่เล็กเกินไป */
-    border-radius: 8px;
-  }
-
-  #toolbar {
-    flex-wrap: wrap;         /* ปุ่มไม่เบียดเกินไป */
-    gap: 8px;
-  }
-
-  #toolbar button {
-    flex: 1 1 48%;           /* แบ่ง 2 ปุ่มต่อแถว */
-    min-width: 140px;
-  }
-
-  .ws {
-    background-size: 32px 32px; /* ลดขนาด grid เล็กลง */
-  }
-
-  .tile {
-    font-size: 18px;
-    padding: 8px 12px;
-    min-width: 40px;
-    min-height: 40px;
-  }
+@media screen and (min-width: 360px) and (max-width: 400px){
+  body{font-size:16px;line-height:1.5}
+  button,input,select,textarea{font-size:16px;padding:12px 16px;min-height:44px;border-radius:8px}
+  .toolbar{flex-wrap:wrap;gap:8px}
+  .toolbar button,.toolbar select#mode,#new-question{flex:1 1 48%;min-width:140px}
+  #problem{font-size:18px}
+  .ws{background-size:32px 32px}
+  .tile{font-size:18px;padding:8px 12px;min-width:40px;min-height:40px}
 }
