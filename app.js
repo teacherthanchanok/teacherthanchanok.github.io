@@ -1,12 +1,11 @@
-/* 
-Version: r10.4
-Changelog:
-- Added 📖 (links) modal and 💡 (lesson video) modal
-- Kept r9 rules: full generator/checker, pointer events, integer/poly ranges, div tables
-- Stop YouTube when closing modals
+/*
+Version: 2025-08-17 r9
+Changelog (from r8):
+- การสุ่ม "หารจำนวนเต็ม": บังคับให้แสดงตัวตั้ง/ตัวหารอยู่ในช่วง [-15,15]\{0} โดยเลือก quotient ให้ |divisor*quotient|≤15 (หารลงตัวเสมอ)
+- ไม่แตะส่วนอื่น (Pointer Events, กฎสุ่มพหุนาม ฯลฯ คงเดิม)
 */
 
-// ====== DOM ======
+//// ====== DOM ======
 const board = document.getElementById('board');
 const palette = document.getElementById('palette');
 const solutionBox = document.getElementById('solution');
@@ -14,6 +13,7 @@ const problemBox = document.getElementById('problem');
 const answerInput = document.getElementById('answerInput');
 const checkBtn = document.getElementById('btn-check');
 const checkResult = document.getElementById('checkResult');
+const normalizeInput = document.getElementById('normalizeInput');
 
 const wsSolve = document.getElementById('ws-solve');
 const wsMul   = document.getElementById('ws-mul');
@@ -23,83 +23,57 @@ const mulMcand= document.getElementById('mul-mcand');
 const divDivisor = document.getElementById('div-divisor');
 const divQuot    = document.getElementById('div-quot');
 
-// NEW: help/links/lesson modals
-const help = document.getElementById('help');
-const helpX = document.getElementById('help-x');
-const btnHelp = document.getElementById('btn-help');
-
-const linksModal = document.getElementById('linksModal');
-const linksX = document.getElementById('links-x');
-const btnLinks = document.getElementById('btn-links');
-
-const lessonModal = document.getElementById('lessonModal');
-const lessonX = document.getElementById('lesson-x');
-const btnLesson = document.getElementById('btn-lesson');
-const lessonFrame = document.getElementById('lessonFrame');
-
-const ytframe = document.getElementById('ytframe');
-
-const modeSel = document.getElementById('mode');
-
-// make inputs interactable (don’t start drag/select)
+// ป้องกัน input ไปแย่ง drag
 ['pointerdown'].forEach(evt=>{
-  if (divQuot) divQuot.addEventListener(evt, e=>e.stopPropagation());
-  if (answerInput) answerInput.addEventListener(evt, e=>e.stopPropagation());
+  if(divQuot){ divQuot.addEventListener(evt, e=>e.stopPropagation()); }
+  if(answerInput){ answerInput.addEventListener(evt, e=>e.stopPropagation()); }
+  if(normalizeInput){ normalizeInput.addEventListener(evt, e=>e.stopPropagation()); }
 });
 
-// ====== Tiles config ======
+//// ====== Tiles config ======
 const TYPES = {
   x2:      {labelHTML:'x<sup>2</sup>',   w:120, h:120, color:'var(--blue)',   shape:'square', neg:'neg_x2'},
   neg_x2:  {labelHTML:'-x<sup>2</sup>',  w:120, h:120, color:'var(--red)',    shape:'square', neg:'x2'},
-  x:       {labelHTML:'x',               w:30,  h:120, color:'var(--green)',  shape:'rect',   neg:'neg_x'}, // vertical first
+  x:       {labelHTML:'x',               w:30,  h:120, color:'var(--green)',  shape:'rect',   neg:'neg_x'},
   neg_x:   {labelHTML:'-x',              w:30,  h:120, color:'var(--red)',    shape:'rect',   neg:'x'},
   one:     {labelHTML:'1',               w:30,  h:30,  color:'var(--yellow)', shape:'mini',   neg:'neg_one'},
   neg_one: {labelHTML:'-1',              w:30,  h:30,  color:'var(--red)',    shape:'mini',   neg:'one'}
 };
 
-let tiles = [];     // {id,type,x,y,w,h}
+let tiles = [];
 let selection = new Set();
-let dragging = null; // {ids,offsets[]}
+let dragging = null;
 let selRect = null;
 let zoom = 1;
 let showSol = false;
-let mode = modeSel.value;
+let mode = document.getElementById('mode').value;
 
 let problemText = '';
 let problemAnswer = '';
-let answerCoef = {a2:0,a1:0,a0:0}; // สำหรับตรวจพหุนาม/จำนวนเต็ม
+let answerCoef = {a2:0,a1:0,a0:0};
 
-// ====== Utils ======
+//// ====== Utils ======
 const uid = ()=> Math.random().toString(36).slice(2);
 const clamp = (v,a,b)=> Math.max(a,Math.min(b,v));
 
-function randNZIn(a,b){
-  // integer in [a,b] excluding 0
-  let v=0;
-  while(v===0){
-    v = Math.floor(Math.random()*(b-a+1))+a;
-  }
-  return v;
-}
-const rint=(a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+function randNZMax(max){ let v=0; while(v===0){ v = (Math.random()<.5?-1:1) * (Math.floor(Math.random()*max)+1); } return v; }
+const rNZ9  = ()=>randNZMax(9);
+const rNZ15 = ()=>randNZMax(15);
+const rNZ20 = ()=>randNZMax(20);
 
-// Workspace visibility
+function rint(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
 function showWorkspace(which){
   wsSolve.style.display = (which==='solve') ? 'block':'none';
   wsMul.style.display   = (which==='mul')   ? 'block':'none';
   wsDiv.style.display   = (which==='div')   ? 'block':'none';
 }
 
-// board coords
 function pt(e){
   const rect = board.getBoundingClientRect();
-  const cx = e.clientX ?? (e.touches? e.touches[0].clientX : 0);
-  const cy = e.clientY ?? (e.touches? e.touches[0].clientY : 0);
-  return { x: (cx - rect.left)/zoom, y: (cy - rect.top)/zoom };
+  return { x: (e.clientX - rect.left)/zoom, y: (e.clientY - rect.top)/zoom };
 }
-function overlaps(x,y,w,h,t){
-  return !(x+w < t.x || x > t.x+t.w || y+h < t.y || y > t.y+t.h);
-}
+function overlaps(x,y,w,h,t){ return !(x+w < t.x || x > t.x+t.w || y+h < t.y || y > t.y+t.h); }
 function findFreeSpot(w,h){
   const margin = 20;
   const startX = 260, startY = 100;
@@ -116,9 +90,55 @@ function findFreeSpot(w,h){
   return {x:startX,y:startY};
 }
 
-// ====== Render ======
+//// ====== Formatting helpers ======
+function termX2(k, isLeadDeg2){
+  if(k===1)  return 'x<sup>2</sup>';
+  if(k===-1) return isLeadDeg2 ? '-x<sup>2</sup>' : '(-x<sup>2</sup>)';
+  return (k<0 && !isLeadDeg2) ? `(${k}x<sup>2</sup>)` : `${k}x<sup>2</sup>`;
+}
+function termX1(k, deg){
+  if(k===1)  return 'x';
+  if(k===-1) return (deg===1 ? '-x' : '(-x)');
+  return (k<0 && deg===2) ? `(${k}x)` : `${k}x`;
+}
+function termC(k){ return (k<0) ? `(${k})` : `${k}`; }
+
+function polyToHTML(coef, outerBrackets){
+  const {a2=0,a1=0,a0=0} = coef;
+  const deg = a2 ? 2 : 1;
+  const parts=[];
+  if(a2){ parts.push( termX2(a2, true) ); }
+  if(a1){ parts.push( termX1(a1, deg) ); }
+  if(a0){ parts.push( termC(a0) ); }
+  if(parts.length===0) parts.push('0');
+  let s = parts.join(' + ');
+  s = s.replace(/\+ \(-/g,'+ (-');
+  return outerBrackets ? `[${s}]` : s;
+}
+
+function addCoef(A,B){ return {a2:(A.a2|0)+(B.a2|0), a1:(A.a1|0)+(B.a1|0), a0:(A.a0|0)+(B.a0|0)}; }
+function subCoef(A,B){ return {a2:(A.a2|0)-(B.a2|0), a1:(A.a1|0)-(B.a1|0), a0:(A.a0|0)-(B.a0|0)}; }
+function mulCoef(A,B){
+  const res = {a2:0,a1:0,a0:0};
+  [[2,A.a2|0],[1,A.a1|0],[0,A.a0|0]].forEach(([pa,ka])=>{
+    [[2,B.a2|0],[1,B.a1|0],[0,B.a0|0]].forEach(([pb,kb])=>{
+      const pow=pa+pb, k=ka*kb;
+      if(pow===2) res.a2+=k; else if(pow===1) res.a1+=k; else res.a0+=k;
+    });
+  });
+  return res;
+}
+function coefAbsLeq(A,limit){ return Math.abs(A.a2||0)<=limit && Math.abs(A.a1||0)<=limit && Math.abs(A.a0||0)<=limit; }
+
+function buildPolyDeg1(rangeNZ){ const b = rangeNZ(), c = rangeNZ(); return {coef:{a2:0,a1:b,a0:c}, html: polyToHTML({a1:b,a0:c}, true)}; }
+function buildPolyDeg1or2_forAddSub(){
+  const deg = Math.random()<.5?2:1;
+  if(deg===2){ const a=rNZ9(), b=rNZ9(), c=rNZ9(); return {coef:{a2:a,a1:b,a0:c}, html: polyToHTML({a2:a,a1:b,a0:c}, true)}; }
+  else{ const b=rNZ9(), c=rNZ9(); return {coef:{a2:0,a1:b,a0:c}, html: polyToHTML({a1:b,a0:c}, true)}; }
+}
+
+//// ====== Render ======
 function render(){
-  // tiles
   board.querySelectorAll('.tile').forEach(el=>el.remove());
   tiles.forEach(t=>{
     const el = document.createElement('div');
@@ -131,11 +151,11 @@ function render(){
     const showLabel = (t.h >= 50 || TYPES[t.type].shape!=='rect');
     el.innerHTML = showLabel ? '<span>'+TYPES[t.type].labelHTML+'</span>' : '';
 
-    // pointer handlers
-    const startDrag = (e)=>{
-      e.stopPropagation(); e.preventDefault();
+    el.addEventListener('pointerdown', (e)=>{
+      e.stopPropagation();
+      el.setPointerCapture(e.pointerId);
       if(!selection.has(t.id)){
-        if(!(e.shiftKey)) selection.clear();
+        if(!e.shiftKey) selection.clear();
         selection.add(t.id);
       }else if(e.shiftKey){
         selection.delete(t.id);
@@ -148,12 +168,10 @@ function render(){
       });
       dragging = {ids, offsets};
       render();
-    };
-    el.addEventListener('pointerdown', startDrag);
+    });
     board.appendChild(el);
   });
 
-  // selection rect
   const oldSel = board.querySelector('.sel-rect');
   if(oldSel) oldSel.remove();
   if(selRect){
@@ -172,7 +190,6 @@ function render(){
   solutionBox.innerHTML = showSol ? '<b>คำตอบที่ถูกต้อง:</b> '+problemAnswer : '';
 }
 
-// ====== Palette add ======
 palette.querySelectorAll('.pal-item').forEach(el=>{
   const addTile = ()=>{
     const type = el.dataset.type;
@@ -183,12 +200,12 @@ palette.querySelectorAll('.pal-item').forEach(el=>{
     selection = new Set([id]);
     render();
   };
-  el.addEventListener('pointerdown', (e)=>{ e.preventDefault(); addTile(); });
+  el.addEventListener('pointerdown', (e)=>{e.preventDefault(); addTile();});
 });
 
-// ====== Board interactions via pointer events ======
-function beginZone(e){
-  if(e.button!==undefined && e.button!==0) return; // only left
+board.addEventListener('pointerdown', (e)=>{
+  if(e.button!==0) return;
+  board.setPointerCapture(e.pointerId);
   const p = pt(e);
   const hit = tiles.slice().reverse().find(t=> p.x>=t.x && p.x<=t.x+t.w && p.y>=t.y && p.y<=t.y+t.h);
   if(hit){
@@ -204,10 +221,11 @@ function beginZone(e){
     selRect = {x0:p.x, y0:p.y, x1:p.x, y1:p.y};
   }
   render();
-}
-function moveZone(e){
+});
+board.addEventListener('pointermove', (e)=>{
   if(!board) return;
   if(dragging){
+    e.preventDefault();
     const p = pt(e);
     tiles = tiles.map(t=>{
       const off = dragging.offsets.find(o=>o.id===t.id);
@@ -216,10 +234,11 @@ function moveZone(e){
     });
     render();
   }else if(selRect){
+    e.preventDefault();
     const p = pt(e); selRect.x1=p.x; selRect.y1=p.y; render();
   }
-}
-function endZone(){
+});
+board.addEventListener('pointerup', ()=>{
   if(dragging) dragging=null;
   if(selRect){
     const {x0,y0,x1,y1} = selRect;
@@ -227,13 +246,9 @@ function endZone(){
     selection = new Set(tiles.filter(t=> t.x>=minx && t.y>=miny && (t.x+t.w)<=maxx && (t.y+t.h)<=maxy).map(t=>t.id));
     selRect=null; render();
   }
-}
+});
 
-board.addEventListener('pointerdown', (e)=>{ e.preventDefault(); beginZone(e); }, {passive:false});
-window.addEventListener('pointermove', (e)=>{ e.preventDefault(); moveZone(e); }, {passive:false});
-window.addEventListener('pointerup', endZone);
-
-// ====== Toolbar actions ======
+//// ====== Toolbar actions ======
 document.getElementById('btn-reset').onclick = ()=>{ tiles=[]; selection.clear(); zoom=1; render(); };
 document.getElementById('btn-delete').onclick = ()=>{ tiles = tiles.filter(t=>!selection.has(t.id)); selection.clear(); render(); };
 document.getElementById('btn-flip').onclick   = ()=>{ tiles = tiles.map(t=> selection.has(t.id) ? ({...t, type:TYPES[t.type].neg}) : t); render(); };
@@ -257,53 +272,27 @@ document.getElementById('btn-rotate').onclick = ()=>{
 };
 document.getElementById('btn-duplicate').onclick = ()=>{
   const selectedTiles = tiles.filter(t=> selection.has(t.id));
-  const clones = selectedTiles.map(t=>{
+  const clones = selectedTiles.map((t,i)=>{
     const spot = findFreeSpot(t.w, t.h);
-    return {...t, id:uid(), x:spot.x, y:spot.y};
+    return {...t, id:uid(), x:spot.x + i*10, y:spot.y + i*10};
   });
   tiles = [...tiles, ...clones];
-  // ยกเลิกเลือกต้นฉบับ เหลือเลือกเฉพาะที่เพิ่มใหม่
-  selection.clear();
-  clones.forEach(c=> selection.add(c.id));
+  selection = new Set(clones.map(c=>c.id));
   render();
 };
 document.getElementById('btn-zoom-in').onclick  = ()=>{ zoom = clamp(zoom*1.25, .4, 2.2); render(); };
 document.getElementById('btn-zoom-out').onclick = ()=>{ zoom = clamp(zoom*0.8,  .4, 2.2); render(); };
 
-// popup help
-btnHelp.onclick = ()=> help.style.display='flex';
-helpX.onclick = ()=> { help.style.display='none'; const s=ytframe.src; ytframe.src=s; };
-
-// ====== NEW: links modal (📖) ======
-btnLinks.onclick = ()=> linksModal.style.display='flex';
-linksX.onclick = ()=> { linksModal.style.display='none'; };
-
-// ====== NEW: lesson modal (💡) with per-mode URLs ======
-const LESSON_URLS = {
-  int_add:  'https://www.youtube.com/embed/CAywl7PRu74',
-  int_sub:  'https://www.youtube.com/embed/VcCwksc542k',
-  int_mul:  'https://www.youtube.com/embed/CZ7KB4qXIG8',
-  int_div:  'https://www.youtube.com/embed/AWdSwZl7GXA',
-  poly_add: 'https://www.youtube.com/embed/Z9poGbeeq1Q',
-  poly_sub: 'https://www.youtube.com/embed/Z9poGbeeq1Q',
-  poly_mul: 'https://www.youtube.com/embed/lWqybjwE2io',
-  poly_div: 'https://www.youtube.com/embed/_VWSpo62__8',
-  solve_lin:'https://www.youtube.com/embed/Z18zPt__6wg'
-};
-btnLesson.onclick = ()=>{
-  const m = modeSel.value;
-  const url = LESSON_URLS[m] || '';
-  lessonFrame.src = url;
-  lessonModal.style.display='flex';
-};
-lessonX.onclick = ()=>{
-  lessonModal.style.display='none';
-  // stop video by resetting src
-  const s = lessonFrame.src; lessonFrame.src = s;
+const help = document.getElementById('help');
+const ytframe = document.getElementById('ytframe');
+document.getElementById('btn-help').onclick = ()=> help.style.display='flex';
+document.getElementById('help-x').onclick   = ()=>{
+  help.style.display='none';
+  const src = ytframe.src; ytframe.src = src;
 };
 
-// ====== Mode & examples ======
-modeSel.onchange = (e)=>{ mode = e.target.value; newExample(); };
+//// ====== Mode & examples ======
+document.getElementById('mode').onchange = (e)=>{ mode = e.target.value; newExample(); };
 document.getElementById('btn-new').onclick = ()=> newExample();
 document.getElementById('btn-solution').onclick = (e)=>{
   showSol = !showSol;
@@ -311,11 +300,9 @@ document.getElementById('btn-solution').onclick = (e)=>{
   render();
 };
 
-// ====== Parser / formatting (r9 rules retained) ======
+//// ====== Parser (เหมือน r8) ======
 function sanitizeInput(s){
-  return String(s||'')
-    .replace(/−/g,'-').replace(/·|×/g,'*').replace(/x²/gi,'x^2')
-    .replace(/\[/g,'(').replace(/\]/g,')').replace(/\s+/g,'').trim();
+  return String(s||'').replace(/−/g,'-').replace(/·|×/g,'*').replace(/x²/gi,'x^2').replace(/\[/g,'(').replace(/\]/g,')').replace(/\s+/g,'').trim();
 }
 function parsePoly(input){
   const s = sanitizeInput(input);
@@ -365,26 +352,10 @@ function parsePoly(input){
   res.a2 |=0; res.a1|=0; res.a0|=0;
   return res;
 }
-function coefToHTML({a2,a1,a0}){
-  const parts=[];
-  if(a2){ parts.push((a2===1?'':a2===-1?'-':a2)+'x<sup>2</sup>'); }
-  if(a1){ parts.push((a1===1?'':a1===-1?'-':a1)+'x'); }
-  if(a0){ parts.push(String(a0)); }
-  return parts.length? parts.join(' + ').replace(/\+ -/g,'+ (-') : '0';
-}
-function addCoef(A,B){ return {a2:A.a2+B.a2, a1:A.a1+B.a1, a0:A.a0+B.a0}; }
-function mulCoef(A,B){
-  const res = {a2:0,a1:0,a0:0};
-  [[2,A.a2],[1,A.a1],[0,A.a0]].forEach(([pa,ka])=>{
-    [[2,B.a2],[1,B.a1],[0,B.a0]].forEach(([pb,kb])=>{
-      const pow=pa+pb, k=ka*kb;
-      if(pow===2) res.a2+=k; else if(pow===1) res.a1+=k; else res.a0+=k;
-    });
-  });
-  return res;
-}
+function coefToHTML({a2,a1,a0}, withBrackets){ return polyToHTML({a2,a1,a0}, !!withBrackets); }
+function equalsCoef(a,b){ return (a.a2|0)===(b.a2|0) && (a.a1|0)===(b.a1|0) && (a.a0|0)===(b.a0|0); }
 
-// ====== Example generator (kept r9 constraints) ======
+//// ====== Example generator ======
 function newExample(){
   showSol=false; document.getElementById('btn-solution').textContent='เฉลย';
   answerInput.value=''; checkResult.textContent='';
@@ -392,65 +363,75 @@ function newExample(){
   showWorkspace(null);
 
   if(mode==='int_add'){
-    const a=randNZIn(-15,15), b=randNZIn(-15,15);
+    const a=rNZ15(), b=rNZ15();
     problemText = `${a} + ${b<0?`(${b})`:b}`;
     const sum=a+b; answerCoef={a2:0,a1:0,a0:sum}; problemAnswer=String(sum);
   }else if(mode==='int_sub'){
-    const a=randNZIn(-15,15), b=randNZIn(-15,15);
+    const a=rNZ15(), b=rNZ15();
     problemText = `${a} - ${b<0?`(${b})`:b}`;
     const res=a-b; answerCoef={a2:0,a1:0,a0:res}; problemAnswer=String(res);
   }else if(mode==='int_mul'){
-    const a=randNZIn(-15,15), b=randNZIn(-15,15);
+    const a=rNZ15(), b=rNZ15();
     problemText = `${a} × ${b<0?`(${b})`:b}`;
     const res=a*b; answerCoef={a2:0,a1:0,a0:res}; problemAnswer=String(res);
     showWorkspace('mul'); mulMult.textContent=b; mulMcand.textContent=a;
   }else if(mode==='int_div'){
-    // divisor, quotient in [-15,15]\{0}, dividend = divisor*quotient
-    const divisor=randNZIn(-15,15), q=randNZIn(-15,15), dividend=divisor*q;
+    // NEW r9: ทั้ง dividend และ divisor ต้องอยู่ใน [-15,15]\{0}
+    const divisor = rNZ15();
+    const maxQ = Math.max(1, Math.floor(15/Math.abs(divisor))); // อย่างน้อย 1
+    // สุ่มผลหารในช่วง [-maxQ, maxQ]\{0}
+    let q = 0;
+    while(q===0){ q = (Math.random()<.5?-1:1) * rint(1, maxQ); }
+    const dividend = divisor * q; // จะอยู่ในช่วงแน่นอน
     problemText = `${dividend} ÷ ${divisor<0?`(${divisor})`:divisor}`;
     answerCoef={a2:0,a1:0,a0:q}; problemAnswer=String(q);
     showWorkspace('div'); divDivisor.textContent=divisor; divQuot.value='';
-  }else if(mode==='poly_add' || mode==='poly_sub' || mode==='poly_mul'){
-    // r9: poly add/sub deg 1 or 2, coef in [-9,9]\{0}; multiply deg≤1
-    const degP = (mode==='poly_mul') ? 1 : (Math.random()<.5 ? 2 : 1);
-    const degQ = (mode==='poly_mul') ? 1 : (Math.random()<.5 ? 2 : 1);
-    const P = buildPoly(degP);
-    const Q = buildPoly(degQ);
-
-    if(mode==='poly_add'){
-      problemText = `${P.html} + ${Q.html}`;
-      answerCoef = addCoef(P.coef, Q.coef);
-      problemAnswer = coefToHTML(answerCoef);
-    }else if(mode==='poly_sub'){
-      problemText = `${P.html} - ${Q.html}`;
-      answerCoef = addCoef(P.coef, {a2:-Q.coef.a2, a1:-Q.coef.a1, a0:-Q.coef.a0});
-      problemAnswer = coefToHTML(answerCoef);
-    }else{
-      problemText = `${P.html} × ${Q.html}`;
-      answerCoef = mulCoef(P.coef, Q.coef);
-      // clamp display to |coef| ≤ 36 (soft display rule)
-      problemAnswer = coefToHTML(answerCoef);
-      showWorkspace('mul');
-      mulMult.innerHTML = formatPolyInline(Q.coef);
-      mulMcand.innerHTML = formatPolyInline(P.coef);
+  }else if(mode==='poly_add' || mode==='poly_sub'){
+    const P = buildPolyDeg1or2_forAddSub();
+    const Q = buildPolyDeg1or2_forAddSub();
+    if(mode==='poly_add'){ problemText = `${P.html} + ${Q.html}`; answerCoef = addCoef(P.coef, Q.coef); }
+    else{ problemText = `${P.html} - ${Q.html}`; answerCoef = subCoef(P.coef, Q.coef); }
+    problemAnswer = coefToHTML(answerCoef, false);
+  }else if(mode==='poly_mul'){
+    let A,B,ok=false;
+    while(!ok){
+      const p = buildPolyDeg1(rNZ9);
+      const q = buildPolyDeg1(rNZ9);
+      const prod = mulCoef(p.coef, q.coef);
+      if(coefAbsLeq(prod,36)){ A=p; B=q; ok=true; }
     }
+    problemText = `${A.html} × ${B.html}`;
+    answerCoef = mulCoef(A.coef,B.coef);
+    problemAnswer = coefToHTML(answerCoef, false);
+    showWorkspace('mul');
+    mulMult.innerHTML  = coefToHTML(B.coef,false);
+    mulMcand.innerHTML = coefToHTML(A.coef,false);
   }else if(mode==='poly_div'){
-    // r9: divisor = (x + d) or sx+t, dividend generated to be divisible; coefs filtered small for display
-    // Here choose linear divisor s x + t with s≠0 (|s|,|t| ≤ 9), quotient deg 1, dividend = divisor*quot
-    let s=randNZIn(-9,9), t=randNZIn(-9,9), a=randNZIn(-9,9), b=randNZIn(-9,9);
-    // dividend = (s x + t)(a x + b) = (sa)x^2 + (sb+ta)x + tb
-    const A2 = s*a, A1 = s*b + t*a, A0 = t*b;
-    problemText = `[${formatPolyInline({a2:A2,a1:A1,a0:A0})}] ÷ [${formatPolyLinear(s,t)}]`;
-    answerCoef = {a2:0,a1:a,a0:b};
-    problemAnswer = coefToHTML(answerCoef);
+    let s,t,a,b,c,degQ,dividend,divisor,quot,ok=false;
+    while(!ok){
+      s=rNZ20(); t=rNZ20();
+      degQ = Math.random()<.5 ? 1 : 2;
+      if(degQ===1){ a=rNZ20(); b=rNZ20(); c=0; quot={a2:0,a1:a,a0:b}; }
+      else        { a=rNZ20(); b=rNZ20(); c=rNZ20(); quot={a2:a,a1:b,a0:c}; }
+      divisor = {a2:0,a1:s,a0:t};
+      dividend = mulCoef(divisor, quot);
+      if(coefAbsLeq(dividend,20)) ok=true;
+    }
+    const check = mulCoef(divisor, quot);
+    if(!equalsCoef(check, dividend)) return newExample();
+
+    const dividendHTML = polyToHTML(dividend, true);
+    const divisorHTML  = polyToHTML(divisor,  true);
+    problemText   = `${dividendHTML} ÷ ${divisorHTML}`;
+    answerCoef    = quot;
+    problemAnswer = coefToHTML(answerCoef, false);
     showWorkspace('div');
-    divDivisor.innerHTML = formatLinearPretty(s,t);
+    divDivisor.innerHTML = coefToHTML(divisor,false);
     divQuot.value='';
   }else if(mode==='solve_lin'){
-    // ax + b = cx + d → find x
     let a,b,c,x,d,ok=false;
     while(!ok){
-      a=randNZIn(-15,15); b=randNZIn(-15,15); c=randNZIn(-15,15); x = rint(-15,15); if(x===0) continue;
+      a=rNZ15(); b=rNZ15(); c=rNZ15(); x = rint(-15,15); if(x===0) continue;
       d = a*x + b - c*x;
       if(Math.abs(d)<=15){ ok=true; }
     }
@@ -462,43 +443,7 @@ function newExample(){
   render();
 }
 
-function formatPolyInline(coef){
-  // returns term formatting with () on negative non-leading terms, wrapped by nothing (for inline)
-  const {a2,a1,a0} = coef;
-  const parts=[];
-  if(a2){ parts.push( a2===1?'x<sup>2</sup>': (a2===-1?'-x<sup>2</sup>':`${a2}x<sup>2</sup>`)); }
-  if(a1){
-    const t = (a1===1?'x': a1===-1?'-x': `${a1}x`);
-    parts.push( a1<0 && parts.length? `(${t})` : t );
-  }
-  if(a0){
-    parts.push( a0<0 && parts.length? `(${a0})` : `${a0}` );
-  }
-  return parts.length? parts.join(' + ').replace(/\+ -/g,'+ (-') : '0';
-}
-function formatPolyLinear(s,t){ // for bracketed divisor
-  const inner = `${ s===1?'x': s===-1?'-x': `${s}x`} ${ t<0? '+ ('+t+')' : (t>0? '+ '+t : '') }`.replace(/\s+/g,' ').trim();
-  return `[${inner}]`;
-}
-function formatLinearPretty(s,t){
-  return `${ s===1?'x': s===-1?'-x': `${s}x` }${ t>=0?'+':'' }${ t }`.replace(/\+\-/, '-');
-}
-
-function buildPoly(deg){
-  // coef in [-9,9]\{0}
-  const pick = ()=> randNZIn(-9,9);
-  if(deg===2){
-    const a=pick(), b=pick(), c=pick();
-    const html = `[${formatPolyInline({a2:a,a1:b,a0:c})}]`;
-    return {coef:{a2:a,a1:b,a0:c}, html};
-  }else{
-    const b=pick(), c=pick();
-    const html = `[${formatPolyInline({a2:0,a1:b,a0:c})}]`;
-    return {coef:{a2:0,a1:b,a0:c}, html};
-  }
-}
-
-// ====== Answer checking ======
+//// ====== Checking ======
 checkBtn.onclick = ()=>{
   checkResult.textContent=''; checkResult.style.color='';
   const givenRaw = answerInput.value;
@@ -508,7 +453,7 @@ checkBtn.onclick = ()=>{
   if(['int_add','int_sub','int_mul','int_div'].includes(mode)){
     const s = stripPar(given);
     if(!/^-?\d+$/.test(s)){ bad(); return; }
-    if(parseInt(s,10) === answerCoef.a0){ good(); } else { bad(); }
+    if(parseInt(s,10) === (answerCoef.a0|0)){ good(); } else { bad(); }
     return;
   }
   if(mode==='solve_lin'){
@@ -527,9 +472,59 @@ checkBtn.onclick = ()=>{
   function good(){ checkResult.textContent='ถูกต้อง'; checkResult.style.color='#16a34a'; }
   function bad(){ checkResult.textContent='ไม่ถูกต้อง'; checkResult.style.color='#dc2626'; }
 };
-function equalsCoef(a,b){ return a.a2===b.a2 && a.a1===b.a1 && a.a0===b.a0; }
 
-// ====== Init ======
+//// ====== Init ======
 document.getElementById('btn-new').focus();
 newExample();
 render();
+
+
+// r9.3 merge: links/video handlers
+(function(){ 
+  const D = (id)=> document.getElementById(id);
+  const linksModal = D('linksModal');
+  const btnLinks = D('btn-links');
+  const linksX = D('links-x');
+
+  if(btnLinks && linksModal){ 
+    btnLinks.addEventListener('click', ()=>{ linksModal.style.display='flex'; });
+  }
+  if(linksX && linksModal){ 
+    linksX.addEventListener('click', ()=>{ linksModal.style.display='none'; });
+  }
+
+  // 💡 video popup
+  const videoModal = D('videoModal');
+  const btnVideo = D('btn-video');
+  const videoX = D('video-x');
+  const frame = D('videoFrame');
+  const modeSel = D('mode');
+
+  const VIDEO_BY_MODE = {
+    'int_add': 'https://youtu.be/CAywl7PRu74?si=oohFr4aSHuJNJXMq',
+    'int_sub': 'https://youtu.be/VcCwksc542k?si=iieOZFX83gzbQD4T',
+    'int_mul': 'https://youtu.be/CZ7KB4qXIG8?si=sDwM0cDwLE8XOwwz',
+    'int_div': 'https://youtu.be/AWdSwZl7GXA?si=lR0vUDsG9MTVH0Oy',
+    'poly_add': 'https://youtu.be/Z9poGbeeq1Q?si=Xqo6UlrE7l9E8YFa',
+    'poly_sub': 'https://youtu.be/Z9poGbeeq1Q?si=Xqo6UlrE7l9E8YFa',
+    'poly_mul': 'https://youtu.be/lWqybjwE2io?si=-OW80uiGDH_Nyn7h',
+    'poly_div': 'https://youtu.be/_VWSpo62__8?si=KlgGbVjJYBxCJssg',
+    'solve_lin': 'https://youtu.be/Z18zPt__6wg?si=WjSRqp_RyGzEF-3J'
+  };
+
+  function openVideo(){ 
+    if(!videoModal || !frame) return;
+    const mode = modeSel ? modeSel.value : null;
+    const url = (mode && VIDEO_BY_MODE[mode]) ? VIDEO_BY_MODE[mode] : 'https://youtu.be/Z18zPt__6wg?si=WjSRqp_RyGzEF-3J';
+    frame.src = url;
+    videoModal.style.display='flex';
+  }
+  function closeVideo(){ 
+    if(!videoModal || !frame) return;
+    const src = frame.src; frame.src=''; // stop
+    setTimeout(()=>{ frame.src=''; }, 50);
+    videoModal.style.display='none';
+  }
+  if(btnVideo && videoModal) btnVideo.addEventListener('click', openVideo);
+  if(videoX && videoModal) videoX.addEventListener('click', closeVideo);
+})();
