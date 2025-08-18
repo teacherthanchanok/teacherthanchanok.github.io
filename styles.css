@@ -169,4 +169,41 @@ body{
     font-size: 18px; /* ขยายโจทย์ให้ชัดเจน */
   }
 }
+/* 🎯 Medium Mobile: 360–400px */
+@media screen and (min-width: 360px) and (max-width: 400px) {
+  body {
+    font-size: 16px;   /* ขยายให้พอดีกับการอ่าน */
+    line-height: 1.5;
+  }
 
+  button,
+  input,
+  select,
+  textarea {
+    font-size: 16px;   /* ตาม guideline ของ iOS/Android */
+    padding: 12px 16px;
+    min-height: 44px;  /* แตะง่าย ไม่เล็กเกินไป */
+    border-radius: 8px;
+  }
+
+  #toolbar {
+    flex-wrap: wrap;         /* ปุ่มไม่เบียดเกินไป */
+    gap: 8px;
+  }
+
+  #toolbar button {
+    flex: 1 1 48%;           /* แบ่ง 2 ปุ่มต่อแถว */
+    min-width: 140px;
+  }
+
+  .ws {
+    background-size: 32px 32px; /* ลดขนาด grid เล็กลง */
+  }
+
+  .tile {
+    font-size: 18px;
+    padding: 8px 12px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
