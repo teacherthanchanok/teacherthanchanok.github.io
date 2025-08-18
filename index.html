@@ -1,20 +1,20 @@
+<!--
+Version: 2025-08-17 r9
+Changelog (from r8):
+- ไม่เปลี่ยนโครงสร้าง HTML; ใช้สไตล์ใหม่ของ select และตารางจาก styles.css r9
+- คงแถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง"
+-->
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <!-- Version: r10.4 (login 👤 + lesson 📖 + quiz pre/post + GAS logging) -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Algebra Tiles by Kru Zack</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Toolbar: ตาม r9 + เพิ่ม 👤 และจัดวางเมนู Pre/Post -->
-  <div class="toolbar">
+  <div class="toolbar" id="toolbar">
     <strong class="brand">Algebra Tiles by Kru Zack</strong>
-
-    <!-- ปุ่มเข้าสู่ระบบ 👤 -->
-    <button class="btn" id="btn-login">👤</button>
-
     <button class="btn" id="btn-reset">จัดระเบียบ</button>
     <button class="btn" id="btn-delete">ลบ</button>
     <button class="btn" id="btn-flip">พลิกด้าน</button>
@@ -22,13 +22,10 @@
     <button class="btn" id="btn-rotate">หมุน</button>
     <button class="btn" id="btn-duplicate">เพิ่มจำนวน</button>
     <button class="btn" id="btn-solution">เฉลย</button>
-    <button class="btn" id="btn-zoom-out">🔍−</button>
-    <button class="btn" id="btn-zoom-in">🔍＋</button>
+    <button class="btn" id="btn-zoom-out" title="ซูมออก">🔍−</button>
+    <button class="btn" id="btn-zoom-in"  title="ซูมเข้า">🔍＋</button>
 
     <select id="mode" title="เลือกเมนู">
-      <!-- ใส่ Pre-Test ไว้บนสุด -->
-      <option value="pre_test">แบบทดสอบก่อนเรียน</option>
-
       <option value="int_add">การบวกจำนวนเต็ม</option>
       <option value="int_sub">การลบจำนวนเต็ม</option>
       <option value="int_mul">การคูณจำนวนเต็ม</option>
@@ -38,19 +35,14 @@
       <option value="poly_mul">การคูณพหุนาม</option>
       <option value="poly_div">การหารพหุนาม</option>
       <option value="solve_lin">การแก้สมการ</option>
-
-      <!-- ใส่ Post-Test ไว้ล่างสุด -->
-      <option value="post_test">แบบทดสอบหลังเรียน</option>
     </select>
 
     <button class="btn help-btn" id="btn-help">?</button>
   </div>
 
+  <!-- แถวโจทย์ (พื้นหลังขาวเสมอ) -->
   <div class="row row-top">
-    <!-- ปุ่ม 📖 วิดีโอบทเรียน (อยู่หน้า "โจทย์ใหม่") -->
-    <button class="btn btn-inline" id="btn-lesson">📖</button>
     <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
-
     <div class="lbl">โจทย์:</div>
     <div id="problem" class="prob"></div>
     <div class="eq">=</div>
@@ -60,7 +52,7 @@
     <div id="solution" class="solution"></div>
   </div>
 
-  <!-- ช่องจัดรูป/กำหนดโจทย์ด้วยตนเอง -->
+  <!-- แถว "จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" -->
   <div class="row row-normalize">
     <input id="normalizeInput" type="text" placeholder="จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง" />
   </div>
@@ -79,12 +71,9 @@
 
     <section class="board-wrap">
       <div class="board" id="board">
-        <div class="grid"></div>
-
         <!-- Workspaces -->
         <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
-        <!-- ตารางคูณจำนวนเต็ม / คูณพหุนาม -->
         <div class="ws" id="ws-mul">
           <div class="table2x2" id="mul-table">
             <div class="cell" id="mul-op">×</div>
@@ -94,7 +83,6 @@
           </div>
         </div>
 
-        <!-- ตารางหารจำนวนเต็ม / หารพหุนาม -->
         <div class="ws" id="ws-div">
           <div class="table2x2">
             <div class="cell" id="div-op">÷</div>
@@ -128,75 +116,6 @@
       </div>
       <div class="contact-row">
         <a class="btn contact" href="https://line.me/ti/p/4X5zjQ9EjJ" target="_blank" rel="noopener">📞 ติดต่อคุณครู</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Login popup 👤 -->
-  <div class="modal" id="loginModal" style="display:none">
-    <div class="card">
-      <button class="close-x" id="login-x" title="ปิด">×</button>
-      <div class="help-title">เข้าสู่ระบบผู้เรียน</div>
-      <div class="login-form">
-        <div class="form-row">
-          <label>ชื่อ</label>
-          <input type="text" id="login-name" placeholder="ชื่อจริง">
-        </div>
-        <div class="form-row">
-          <label>นามสกุล</label>
-          <input type="text" id="login-lastname" placeholder="นามสกุล">
-        </div>
-        <div class="form-row">
-          <label>ระดับชั้น</label>
-          <input type="text" id="login-class" placeholder="เช่น ม.2/2">
-        </div>
-        <div class="form-actions">
-          <button class="btn" id="btn-login-submit">บันทึก</button>
-        </div>
-        <div id="login-msg" class="small-note"></div>
-      </div>
-
-      <!-- ส่วนแสดงโปรไฟล์เมื่อเข้าสู่ระบบแล้ว -->
-      <div class="profile" id="profile-pane" style="display:none">
-        <div class="profile-name" id="profile-name"></div>
-        <div class="profile-class" id="profile-class"></div>
-
-        <div class="profile-scores">
-          <div><b>คะแนน Pre-Test:</b> <span id="profile-pre">-</span></div>
-          <div><b>คะแนน Post-Test:</b> <span id="profile-post">-</span></div>
-        </div>
-
-        <div class="profile-stats">
-          <div><b>สถิติโดยไม่กดเฉลย (ถูกนับข้อ):</b></div>
-          <ul>
-            <li>บวกจำนวนเต็ม: <span id="s-add-int">0</span></li>
-            <li>ลบจำนวนเต็ม: <span id="s-sub-int">0</span></li>
-            <li>คูณจำนวนเต็ม: <span id="s-mul-int">0</span></li>
-            <li>หารจำนวนเต็ม: <span id="s-div-int">0</span></li>
-            <li>บวกพหุนาม: <span id="s-add-poly">0</span></li>
-            <li>ลบพหุนาม: <span id="s-sub-poly">0</span></li>
-            <li>คูณพหุนาม: <span id="s-mul-poly">0</span></li>
-            <li>หารพหุนาม: <span id="s-div-poly">0</span></li>
-            <li>แก้สมการ: <span id="s-solve">0</span></li>
-          </ul>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn" id="btn-logout">ออกจากระบบ</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Lesson popup 📖 -->
-  <div class="modal" id="lesson" style="display:none">
-    <div class="card">
-      <button class="close-x" id="lesson-x" title="ปิด">×</button>
-      <div class="help-title">วิดีโอประกอบบทเรียน</div>
-      <div class="video-wrap">
-        <iframe id="lessonFrame" src="" title="Lesson Video"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen></iframe>
       </div>
     </div>
   </div>
