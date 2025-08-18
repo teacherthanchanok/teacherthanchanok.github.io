@@ -1,174 +1,169 @@
+<!-- Algebra Tiles by Kru Zack — index.html (r10.4.1)
+Change log:
+- Remove any login/result logging or Google Sheet integration (UI unchanged)
+- Keep quiz links (📖) modal and lesson video (💡) modal as before
+-->
 <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Algebra Tiles by Kru Zack — r10.5 (merge r9 logic + r10.4 UI)</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Algebra Tiles by Kru Zack</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <!-- Toolbar -->
-  <div class="toolbar" role="navigation" aria-label="Main Toolbar">
-    <span class="brand">Algebra Tiles by Kru Zack</span>
+  <div class="toolbar">
+    <strong class="brand">Algebra Tiles by Kru Zack</strong>
 
-    <!-- 👤 เข้าสู่ระบบ (เดิมมีอยู่ใน r10.4) -->
-    <button id="btn-login" class="btn" title="เข้าสู่ระบบ">👤</button>
+    <!-- Links modal trigger -->
+    <button class="btn" id="btn-links" title="รายการแบบทดสอบ/แบบฝึกหัด">📖</button>
 
-    <!-- 📖 รายการแบบทดสอบ/แบบฝึกหัด (ใหม่ตามคำขอ อยู่ 'ก่อน' ปุ่ม ?) -->
-    <button id="btn-resources" class="btn" title="รายการแบบทดสอบ/แบบฝึกหัด">📖</button>
+    <!-- Help video modal trigger (topic video) -->
+    <button class="btn" id="btn-idea" title="วิดีโออธิบายเมนูปัจจุบัน">💡</button>
 
-    <!-- ? คู่มือ/ช่วยเหลือ -->
-    <button id="btn-help" class="btn help-btn" title="วิธีใช้งาน">?</button>
+    <button class="btn" id="btn-reset">จัดระเบียบ</button>
+    <button class="btn" id="btn-delete">ลบ</button>
+    <button class="btn" id="btn-flip">พลิกด้าน</button>
+    <button class="btn" id="btn-zero">จับคู่เป็นศูนย์</button>
+    <button class="btn" id="btn-rotate">หมุน</button>
+    <button class="btn" id="btn-duplicate">เพิ่มจำนวน</button>
+    <button class="btn" id="btn-solution">เฉลย</button>
+    <button class="btn" id="btn-zoom-out">🔍−</button>
+    <button class="btn" id="btn-zoom-in">🔍＋</button>
 
-    <!-- โหมดแบบฝึก -->
-    <select id="mode" aria-label="เลือกเมนู">
-      <option value="add_int">บวกจำนวนเต็ม</option>
-      <option value="sub_int">ลบจำนวนเต็ม</option>
-      <option value="mul_int">คูณจำนวนเต็ม</option>
-      <option value="div_int">หารจำนวนเต็ม</option>
-      <option value="add_poly">บวกพหุนาม</option>
-      <option value="sub_poly">ลบพหุนาม</option>
-      <option value="mul_poly">คูณพหุนาม</option>
-      <option value="div_poly">หารพหุนาม</option>
-      <option value="solve_eq">แก้สมการ</option>
+    <select id="mode" title="เลือกเมนู">
+      <option value="int_add">การบวกจำนวนเต็ม</option>
+      <option value="int_sub">การลบจำนวนเต็ม</option>
+      <option value="int_mul">การคูณจำนวนเต็ม</option>
+      <option value="int_div">การหารจำนวนเต็ม</option>
+      <option value="poly_add">การบวกพหุนาม</option>
+      <option value="poly_sub">การลบพหุนาม</option>
+      <option value="poly_mul">การคูณพหุนาม</option>
+      <option value="poly_div">การหารพหุนาม</option>
+      <option value="solve_lin">การแก้สมการ</option>
     </select>
 
-    <!-- 💡 วิดีโออธิบาย (ใหม่: อยู่ “ด้านหน้าปุ่มโจทย์ใหม่”) -->
-    <button id="btn-lesson" class="btn" title="ดูคลิปอธิบาย">💡</button>
-
-    <!-- โจทย์ใหม่ / เฉลย / รีเซ็ต -->
-    <button id="btn-new" class="btn">โจทย์ใหม่</button>
-    <button id="btn-solution" class="btn">เฉลย</button>
-    <button id="btn-reset" class="btn">รีเซ็ตกระดาน</button>
+    <button class="btn help-btn" id="btn-help">?</button>
   </div>
 
-  <!-- แถบโจทย์-คำตอบ -->
-  <div class="row row-top">
-    <span class="lbl">โจทย์:</span>
-    <span id="problem" class="prob"></span>
+  <!-- Problem row -->
+  <div class="row">
+    <button class="btn btn-inline" id="btn-new">โจทย์ใหม่</button>
+    <div class="lbl">โจทย์:</div>
+    <div id="problem" class="prob"></div>
+    <div class="eq">=</div>
+    <input type="text" id="answerInput" placeholder="พิมพ์คำตอบ" />
+    <button class="btn btn-inline" id="btn-check">ตรวจสอบคำตอบ</button>
+    <div id="checkResult"></div>
+    <div id="solution" class="solution"></div>
   </div>
 
-  <div class="row row-top">
-    <label for="answerInput" class="lbl">พิมพ์คำตอบ:</label>
-    <input id="answerInput" type="text" placeholder="พิมพ์คำตอบที่นี่" />
-    <button id="btn-check" class="btn btn-inline">ตรวจคำตอบ</button>
-    <span id="checkResult" class="check-msg"></span>
-    <span id="solution" class="solution"></span>
+  <!-- Manual input row -->
+  <div class="row row-compact">
+    <label for="manualInput" class="lbl">จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง</label>
+    <input type="text" id="manualInput" placeholder="เช่น [x + (-3)] + [2x + 5] หรือ 12 ÷ (-3)" />
+    <button class="btn btn-inline" id="btn-apply-manual">นำไปใช้</button>
   </div>
 
-  <div class="row row-normalize">
-    <label for="normalizeInput" class="lbl">จัดรูปสมการ/กำหนดโจทย์ด้วยตนเอง:</label>
-    <input id="normalizeInput" type="text" placeholder="ตัวอย่าง: [x + (-3)] + [2x + 5] หรือ (x+2)(x-3) เป็นต้น" />
-  </div>
-
-  <!-- พาเล็ตไทล์ + กระดาน -->
   <div class="wrap">
-    <aside id="palette" class="palette" aria-label="Tiles Palette">
+    <!-- Palette -->
+    <aside class="palette" id="palette">
       <div class="pal-title">กระเบื้องพีชคณิต</div>
-      <div class="pal-item" data-type="x2"><div class="pal-chip chip-x2"></div>x²</div>
-      <div class="pal-item" data-type="neg_x2"><div class="pal-chip chip-negx2"></div>-x²</div>
-      <div class="pal-item" data-type="x"><div class="pal-chip chip-x"></div>x</div>
-      <div class="pal-item" data-type="neg_x"><div class="pal-chip chip-negx"></div>-x</div>
-      <div class="pal-item" data-type="one"><div class="pal-chip chip-one"></div>1</div>
-      <div class="pal-item" data-type="neg_one"><div class="pal-chip chip-negone"></div>-1</div>
-      <div class="pal-note">ลากไทล์ลงกระดาน • แตะเลือกหลายชิ้นด้วย Shift • ปรับซ้อนศูนย์/สลับเครื่องหมายได้</div>
-
-      <hr />
-      <button id="btn-delete" class="btn btn-inline">ลบที่เลือก</button>
-      <button id="btn-zero" class="btn btn-inline">ตัดศูนย์ (+1/-1, +x/-x, +x²/-x²)</button>
-      <button id="btn-flip" class="btn btn-inline">สลับเครื่องหมาย</button>
-      <button id="btn-rotate" class="btn btn-inline">หมุนแนว x ↔ แนวตั้ง</button>
-      <button id="btn-duplicate" class="btn btn-inline">เพิ่มจำนวน</button>
-      <button id="btn-zoom-in" class="btn btn-inline">ซูม +</button>
-      <button id="btn-zoom-out" class="btn btn-inline">ซูม −</button>
+      <div class="pal-item" data-type="x2"><div class="pal-chip chip-x2"></div><span>x<sup>2</sup></span></div>
+      <div class="pal-item" data-type="neg_x2"><div class="pal-chip chip-negx2"></div><span>-x<sup>2</sup></span></div>
+      <div class="pal-item" data-type="x"><div class="pal-chip chip-x"></div><span>x</span></div>
+      <div class="pal-item" data-type="neg_x"><div class="pal-chip chip-negx"></div><span>-x</span></div>
+      <div class="pal-item" data-type="one"><div class="pal-chip chip-one"></div><span>1</span></div>
+      <div class="pal-item" data-type="neg_one"><div class="pal-chip chip-negone"></div><span>-1</span></div>
+      <div class="pal-note">* ต้องการจำนวนตรงข้ามใช้ปุ่ม “พลิกด้าน”</div>
     </aside>
 
-    <main class="board-wrap">
-      <div id="board" class="board" tabindex="0" aria-label="Workspace Board">
-        <!-- พื้นที่ทำงาน (ตารางคูณ/หาร) -->
-        <section id="ws-mul" class="ws" aria-label="พื้นที่คูณพหุนาม">
-          <div class="table2x2">
-            <div class="cell" id="mul-mult">ตัวคูณ</div>
-            <div class="cell">แถวบน</div>
-            <div class="cell" id="mul-mcand">ตัวตั้ง</div>
-            <div class="cell">แถวล่าง</div>
-          </div>
-        </section>
+    <!-- Board -->
+    <section class="board-wrap">
+      <div class="board" id="board">
+        <div class="grid"></div>
 
-        <section id="ws-div" class="ws" aria-label="พื้นที่หารพหุนาม">
-          <div class="table2x2">
-            <div class="cell" id="div-divisor">ตัวหาร</div>
-            <div class="cell">แถวบน</div>
-            <div class="cell" id="div-quot">ผลหาร</div>
-            <div class="cell">แถวล่าง</div>
-          </div>
-        </section>
+        <!-- Solve workspace -->
+        <div class="ws" id="ws-solve"><div class="midline"></div></div>
 
-        <section id="ws-solve" class="ws" aria-label="พื้นที่แก้สมการ">
-          <div class="midline" aria-hidden="true"></div>
-        </section>
+        <!-- Multiply workspace (div-table structure) -->
+        <div class="ws" id="ws-mul">
+          <div class="table2x2-div" id="mul-table">
+            <div class="row-div">
+              <div class="cell-div op" id="mul-op">×</div>
+              <div class="cell-div fill" id="mul-mult">?</div>
+            </div>
+            <div class="row-div">
+              <div class="cell-div fill" id="mul-mcand">?</div>
+              <div class="cell-div"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Divide workspace (div-table structure) -->
+        <div class="ws" id="ws-div">
+          <div class="table2x2-div">
+            <div class="row-div">
+              <div class="cell-div op" id="div-op">÷</div>
+              <div class="cell-div"><input id="div-quot" placeholder="?" /></div>
+            </div>
+            <div class="row-div">
+              <div class="cell-div fill" id="div-divisor">?</div>
+              <div class="cell-div"></div>
+            </div>
+          </div>
+        </div>
       </div>
-    </main>
+    </section>
   </div>
 
-  <!-- Modal: Help (?) -->
-  <div id="modal-help" class="modal" aria-hidden="true">
+  <!-- Links modal -->
+  <div class="modal" id="linksModal" style="display:none">
     <div class="card">
-      <button class="close-x" data-close="#modal-help">×</button>
-      <h3>วิธีใช้งาน</h3>
-      <p>ลากกระเบื้องพีชคณิตเพื่อช่วยคิดโจทย์บวก/ลบ/คูณ/หารพหุนามและแก้สมการ…</p>
-      <hr />
-      <small class="ver-note">เวอร์ชัน: r10.5 (merge r9 logic + r10.4 UI)</small>
-    </div>
-  </div>
-
-  <!-- Modal: Resources (📖) -->
-  <div id="modal-resources" class="modal" aria-hidden="true">
-    <div class="card">
-      <button class="close-x" data-close="#modal-resources">×</button>
-      <h3>รายการแบบทดสอบ & แบบฝึกหัด</h3>
-      <ul class="res-list">
-        <li>❤️ <a target="_blank" href="https://forms.gle/818MfCDrbNQfdMBm7">แบบทดสอบก่อนเรียน</a></li>
-        <li>⭐️ <a target="_blank" href="https://forms.gle/JLXqbHbDKG12RpmY8">แบบฝึกหัดการบวกจำนวนเต็ม</a></li>
-        <li>⭐️ <a target="_blank" href="https://forms.gle/oYqZLsq1RMaKcrFX6">แบบฝึกหัดการลบจำนวนเต็ม</a></li>
-        <li>⭐️ <a target="_blank" href="https://forms.gle/qfwQaxs6K9KEcmaw6">แบบฝึกหัดการคูณจำนวนเต็ม</a></li>
-        <li>⭐️ <a target="_blank" href="https://forms.gle/WBaGoTexFzNt9w9i9">แบบฝึกหัดการหารจำนวนเต็ม</a></li>
-        <li>⭐️ <a target="_blank" href="https://forms.gle/jsnznmtCcZ7otEiVA">แบบฝึกหัดการบวกพหุนาม</a></li>
-        <li>⭐️ <a target="_blank" href="https://forms.gle/8VUK4tHpqWnLNnms7">แบบฝึกหัดการลบพหุนาม</a></li>
-        <li>⭐️ <a target="_blank" href="https://forms.gle/NRzCfoy2KXek35588">แบบฝึกหัดการคูณพหุนาม</a></li>
-        <li>⭐️ <a target="_blank" href="https://forms.gle/cFQrnprQStT1dk9R8">แบบฝึกหัดการหารพหุนาม</a></li>
-        <li>⭐️ <a target="_blank" href="https://forms.gle/xcFV5qLafb8AqEgFA">แบบฝึกหัดการแก้สมการ</a></li>
-        <li>🎮 <a target="_blank" href="https://quiz.zep.us/th/play/r7xAqd">เกมทบทวนบทเรียน</a></li>
-        <li>❤️ <a target="_blank" href="https://forms.gle/zghZCqu8qJ1abyxm7">แบบทดสอบหลังเรียน</a></li>
+      <button class="close-x" data-close="#linksModal" title="ปิด">×</button>
+      <div class="help-title">ลิงก์แบบทดสอบและแบบฝึกหัด</div>
+      <ul class="links-list">
+        <li><a href="https://forms.gle/818MfCDrbNQfdMBm7" target="_blank">❤️ แบบทดสอบก่อนเรียน</a></li>
+        <li><a href="https://forms.gle/JLXqbHbDKG12RpmY8" target="_blank">⭐️ บวกจำนวนเต็ม</a></li>
+        <li><a href="https://forms.gle/oYqZLsq1RMaKcrFX6" target="_blank">⭐️ ลบจำนวนเต็ม</a></li>
+        <li><a href="https://forms.gle/qfwQaxs6K9KEcmaw6" target="_blank">⭐️ คูณจำนวนเต็ม</a></li>
+        <li><a href="https://forms.gle/WBaGoTexFzNt9w9i9" target="_blank">⭐️ หารจำนวนเต็ม</a></li>
+        <li><a href="https://forms.gle/jsnznmtCcZ7otEiVA" target="_blank">⭐️ บวกพหุนาม</a></li>
+        <li><a href="https://forms.gle/8VUK4tHpqWnLNnms7" target="_blank">⭐️ ลบพหุนาม</a></li>
+        <li><a href="https://forms.gle/NRzCfoy2KXek35588" target="_blank">⭐️ คูณพหุนาม</a></li>
+        <li><a href="https://forms.gle/cFQrnprQStT1dk9R8" target="_blank">⭐️ หารพหุนาม</a></li>
+        <li><a href="https://forms.gle/xcFV5qLafb8AqEgFA" target="_blank">⭐️ แก้สมการ</a></li>
+        <li><a href="https://quiz.zep.us/th/play/r7xAqd" target="_blank">🎮 เกมทบทวนบทเรียน</a></li>
+        <li><a href="https://forms.gle/zghZCqu8qJ1abyxm7" target="_blank">❤️ แบบทดสอบหลังเรียน</a></li>
       </ul>
     </div>
   </div>
 
-  <!-- Modal: Lesson (💡 YouTube) -->
-  <div id="modal-lesson" class="modal" aria-hidden="true">
+  <!-- Video modal -->
+  <div class="modal" id="videoModal" style="display:none">
     <div class="card">
-      <button class="close-x" data-close="#modal-lesson">×</button>
-      <h3>วิดีโออธิบายบทเรียน</h3>
+      <button class="close-x" data-close="#videoModal" title="ปิด">×</button>
+      <div class="help-title">วิดีโออธิบายหัวข้อ</div>
       <div class="video-wrap">
-        <iframe id="ytframe" src="" title="YouTube video" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        <iframe id="topicVideo" src="" title="Topic Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
     </div>
   </div>
 
-  <!-- Modal: Login (👤) -->
-  <div id="modal-login" class="modal" aria-hidden="true">
+  <!-- Help modal -->
+  <div class="modal" id="help" style="display:none">
     <div class="card">
-      <button class="close-x" data-close="#modal-login">×</button>
-      <h3>เข้าสู่ระบบผู้เรียน</h3>
-      <div class="grid2">
-        <label>ชื่อจริง <input id="login-name" type="text" /></label>
-        <label>นามสกุล <input id="login-lastname" type="text" /></label>
-        <label>ระดับชั้น/ห้อง <input id="login-class" type="text" /></label>
-      </div>
-      <div class="right">
-        <button id="btn-login-submit" class="btn">บันทึก</button>
-      </div>
-      <div id="login-state" class="muted"></div>
+      <button class="close-x" id="help-x" title="ปิด">×</button>
+      <div class="help-title">วิธีใช้งาน Algebra Tiles</div>
+      <ul class="help-list">
+        <li>ลากชิ้นส่วนจากแถบซ้ายเข้าสู่กระดานได้ไม่จำกัด</li>
+        <li>คลิกค้างแล้วลากบนพื้นที่ว่างเพื่อเลือกคลุมหลายชิ้น</li>
+        <li>ปุ่ม “พลิกด้าน” เปลี่ยนเป็นค่าตรงข้าม, “จับคู่เป็นศูนย์” ลบคู่ตรงข้าม, “หมุน” ใช้กับสี่เหลี่ยมผืนผ้า, “เพิ่มจำนวน” เพิ่มชิ้นที่เลือกเป็นเท่าตัว</li>
+        <li>ปุ่ม “จัดระเบียบ” เคลียร์กระดานและรีเซ็ตซูม</li>
+        <li><b>หากต้องการพิมพ์กำลังสอง ให้พิมพ์ x^2</b></li>
+      </ul>
+      <div class="credit small-muted">เวอร์ชัน r10.4.1</div>
     </div>
   </div>
 
