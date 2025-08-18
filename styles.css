@@ -1,11 +1,10 @@
 /*
-Version: 2025-08-17 r10.4
-- เพิ่มปุ่ม 👤 + modal login/profail
-- เพิ่มปุ่ม 📖 + lesson modal
-- คงพื้นหลังกริด 40px สีเทาอ่อน และเลย์เอาต์ r9
-- ใช้สไตล์ตารางคูณ/หารเดิมจาก r9 (grid) และ ws เลื่อนแนวนอนเมื่อจอแคบ
+Version: 2025-08-17 r9
+Changelog (from r8):
+- เพิ่มขนาดตัวอักษร select#mode ให้เท่าปุ่ม (.btn)
+- ปรับ responsive ของ workspaces ตารางคูณ/หาร: ให้กล่อง ws เลื่อนแนวนอนได้เมื่อแคบ (แนวทาง responsive-table)
+- ตั้ง min-width ให้ .table2x2 และเปิด inertia scroll (touch)
 */
-
 :root{
   --purple:#6b21a8; --purple-2:#7c3aed; --ink:#111827; --line:#e5e7eb;
   --blue:#4A7BD9; --green:#4CAF50; --red:#C91C1C; --yellow:#F6D267;
@@ -21,18 +20,18 @@ body{
   font-size:18px;
   overflow-x:hidden;
 
-  /* พื้นหลังกริด 40px */
   background-size:40px 40px;
   background-image:
     linear-gradient(to right, var(--grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
 }
 
-/* Toolbar (เลื่อนแนวนอนเมื่อปุ่มล้นจอ) */
+/* Toolbar */
 .toolbar{
   position:sticky;top:0;z-index:10;
   display:flex;align-items:center;gap:.6rem;
   padding:.6rem .9rem;background:var(--purple);color:#fff;
+
   flex-wrap:nowrap;
   overflow-x:auto;
   -webkit-overflow-scrolling:touch;
@@ -46,6 +45,8 @@ body{
 }
 .btn:hover{filter:brightness(.96)}
 .help-btn{margin-left:auto}
+
+/* ทำให้ select ดูเท่ากับปุ่ม */
 .toolbar select#mode{
   font-size:1.05rem;
   padding:.55rem 1rem;
@@ -89,7 +90,6 @@ body{
 
 .board-wrap{position:relative;flex:1;overflow:hidden}
 .board{position:absolute;inset:0;transform-origin:0 0;touch-action:none}
-.grid{position:absolute;inset:0;pointer-events:none}
 .tile{position:absolute;border:2px solid #222;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;user-select:none;color:#000;touch-action:none}
 .tile span{pointer-events:none}
 .selected{outline:3px solid var(--purple-2)}
@@ -99,21 +99,23 @@ body{
 .ws{
   position:absolute;left:40px;top:40px;right:40px;bottom:40px;
   border:3px solid #cbd5e1;background:#f8fafc;border-radius:10px;display:none;
-  overflow:auto; -webkit-overflow-scrolling:touch;
+  /* เมื่อจอแคบให้เลื่อนแนวนอนได้ (แนวคิด responsive-table) */
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
 }
 .ws .midline{position:absolute;top:20px;bottom:20px;left:50%;width:3px;background:#94a3b8}
 
-/* ตาราง 2x2 แบบ Grid (ตาม r9) */
+/* ตาราง 2x2 แบบ Grid */
 .table2x2{
   position:absolute;left:40px;top:80px;right:40px;bottom:40px;
   border:3px solid #94a3b8;border-radius:8px;
   display:grid;grid-template-columns:180px 1fr;grid-template-rows:160px 1fr;background:#fff;
-  min-width:560px;
+  min-width:560px; /* ให้มีความกว้างขั้นต่ำสำหรับเลื่อน */
 }
 .cell{border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;padding:.25rem}
 .cell input{font-size:1.15rem;padding:.4rem .5rem;border:1px solid #cbd5e1;border-radius:.4rem;width:100%;max-width:100%;min-width:0;background:#fff;color:#111}
 
-/* Popup base */
+/* Popup */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:40}
 .card{position:relative;background:#fff;border-radius:14px;max-width:780px;width:96%;padding:16px}
 .close-x{position:absolute;right:8px;top:8px;background:#ef4444;border:none;color:#fff;border-radius:999px;width:34px;height:34px;cursor:pointer;font-weight:800}
@@ -124,17 +126,6 @@ body{
 .credit{font-size:1rem;color:#374151;margin-top:.6rem;text-align:center}
 .contact-row{display:flex;justify-content:center;margin-top:.6rem}
 .contact{display:inline-block}
-
-/* Login form / profile */
-.login-form .form-row{display:flex;gap:.6rem;align-items:center;margin:.4rem 0}
-.login-form label{min-width:7rem}
-.login-form input{flex:1;border:1px solid var(--line);border-radius:.5rem;padding:.5rem .65rem;font-size:1rem}
-.form-actions{margin-top:.6rem}
-.small-note{color:#6b7280;font-size:.95rem;margin-top:.3rem}
-.profile .profile-name{font-weight:800;margin:.3rem 0}
-.profile .profile-class{color:#374151;margin-bottom:.4rem}
-.profile .profile-scores{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin:.4rem 0}
-.profile .profile-stats ul{margin:.3rem 1rem}
 
 /* Responsive */
 @media (max-width: 900px){
@@ -147,7 +138,35 @@ body{
   .pal-item{padding:.45rem}
   .row input[type=text]{min-width:12rem}
 }
+/* มือถือแนวนอน / หน้าต่างเตี้ย: กระชับตารางและพิมพ์อ่านง่าย */
 @media (orientation: landscape) and (max-height: 520px){
   .table2x2{grid-template-columns:140px 1fr;grid-template-rows:120px 1fr;min-width:480px}
   .cell{font-size:1.05rem}
 }
+/* Breakpoint สำหรับ Medium Mobile (360px–400px) */
+@media (min-width: 360px) and (max-width: 400px) {
+  body {
+    font-size: 16px; /* ฟอนต์หลักอ่านง่ายขึ้น */
+  }
+
+  .toolbar button,
+  .toolbar select#mode,
+  #new-question {
+    font-size: 15px;
+    padding: 10px 14px;  /* เพิ่มพื้นที่กด */
+    min-width: 44px;     /* ขนาดสัมผัสมาตรฐานนิ้วโป้ง */
+    min-height: 44px;
+  }
+
+  input#answer {
+    font-size: 16px;
+    padding: 8px 10px;
+    min-width: 80px;    /* ให้ไม่เล็กเกินไป */
+    min-height: 40px;
+  }
+
+  #problem {
+    font-size: 18px; /* ขยายโจทย์ให้ชัดเจน */
+  }
+}
+
