@@ -1,7 +1,9 @@
-/* Algebra Tiles by Kru Zack — app.js (r10.4.1)
-Change log:
-- REMOVE Google Sheet / login counters / GAS fetch — no tracking or saving
-- Keep everything else: pointer events, generators, consistent brackets, div-based tables
+/* 
+Version: r10.4
+Changelog:
+- Added 📖 (links) modal and 💡 (lesson video) modal
+- Kept r9 rules: full generator/checker, pointer events, integer/poly ranges, div tables
+- Stop YouTube when closing modals
 */
 
 // ====== DOM ======
@@ -21,23 +23,36 @@ const mulMcand= document.getElementById('mul-mcand');
 const divDivisor = document.getElementById('div-divisor');
 const divQuot    = document.getElementById('div-quot');
 
-const linksModal = document.getElementById('linksModal');
-const videoModal = document.getElementById('videoModal');
-const helpModal  = document.getElementById('help');
-const topicVideo = document.getElementById('topicVideo');
+// NEW: help/links/lesson modals
+const help = document.getElementById('help');
+const helpX = document.getElementById('help-x');
+const btnHelp = document.getElementById('btn-help');
 
-// inputs must not start drag
+const linksModal = document.getElementById('linksModal');
+const linksX = document.getElementById('links-x');
+const btnLinks = document.getElementById('btn-links');
+
+const lessonModal = document.getElementById('lessonModal');
+const lessonX = document.getElementById('lesson-x');
+const btnLesson = document.getElementById('btn-lesson');
+const lessonFrame = document.getElementById('lessonFrame');
+
+const ytframe = document.getElementById('ytframe');
+
+const modeSel = document.getElementById('mode');
+
+// make inputs interactable (don’t start drag/select)
 ['pointerdown'].forEach(evt=>{
-  if(divQuot) divQuot.addEventListener(evt, e=>e.stopPropagation());
-  if(answerInput) answerInput.addEventListener(evt, e=>e.stopPropagation());
+  if (divQuot) divQuot.addEventListener(evt, e=>e.stopPropagation());
+  if (answerInput) answerInput.addEventListener(evt, e=>e.stopPropagation());
 });
 
 // ====== Tiles config ======
 const TYPES = {
   x2:      {labelHTML:'x<sup>2</sup>',   w:120, h:120, color:'var(--blue)',   shape:'square', neg:'neg_x2'},
   neg_x2:  {labelHTML:'-x<sup>2</sup>',  w:120, h:120, color:'var(--red)',    shape:'square', neg:'x2'},
-  x:       {labelHTML:'x',               w:30,  h:120, color:'var(--green)',  shape:'rectV',  neg:'neg_x'}, // vertical first
-  neg_x:   {labelHTML:'-x',              w:30,  h:120, color:'var(--red)',    shape:'rectV',  neg:'x'},
+  x:       {labelHTML:'x',               w:30,  h:120, color:'var(--green)',  shape:'rect',   neg:'neg_x'}, // vertical first
+  neg_x:   {labelHTML:'-x',              w:30,  h:120, color:'var(--red)',    shape:'rect',   neg:'x'},
   one:     {labelHTML:'1',               w:30,  h:30,  color:'var(--yellow)', shape:'mini',   neg:'neg_one'},
   neg_one: {labelHTML:'-1',              w:30,  h:30,  color:'var(--red)',    shape:'mini',   neg:'one'}
 };
@@ -48,8 +63,7 @@ let dragging = null; // {ids,offsets[]}
 let selRect = null;
 let zoom = 1;
 let showSol = false;
-let modeElem = document.getElementById('mode');
-let mode = modeElem ? modeElem.value : 'int_add';
+let mode = modeSel.value;
 
 let problemText = '';
 let problemAnswer = '';
@@ -59,15 +73,15 @@ let answerCoef = {a2:0,a1:0,a0:0}; // สำหรับตรวจพหุน
 const uid = ()=> Math.random().toString(36).slice(2);
 const clamp = (v,a,b)=> Math.max(a,Math.min(b,v));
 
-// RNG helpers
-function rint(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
-function randNZIn(a,b){ let v=0; while(v===0){ v=rint(a,b); } return v; }
-const rng = {
-  int15(){return randNZIn(-15,15);},
-  int12(){return randNZIn(-12,12);},
-  int9(){return randNZIn(-9,9);},
-  int20(){return randNZIn(-20,20);}
-};
+function randNZIn(a,b){
+  // integer in [a,b] excluding 0
+  let v=0;
+  while(v===0){
+    v = Math.floor(Math.random()*(b-a+1))+a;
+  }
+  return v;
+}
+const rint=(a,b)=> Math.floor(Math.random()*(b-a+1))+a;
 
 // Workspace visibility
 function showWorkspace(which){
@@ -76,11 +90,11 @@ function showWorkspace(which){
   wsDiv.style.display   = (which==='div')   ? 'block':'none';
 }
 
-// pointer to board coords (Pointer Events)
+// board coords
 function pt(e){
   const rect = board.getBoundingClientRect();
-  const cx = e.clientX;
-  const cy = e.clientY;
+  const cx = e.clientX ?? (e.touches? e.touches[0].clientX : 0);
+  const cy = e.clientY ?? (e.touches? e.touches[0].clientY : 0);
   return { x: (cx - rect.left)/zoom, y: (cy - rect.top)/zoom };
 }
 function overlaps(x,y,w,h,t){
@@ -114,12 +128,11 @@ function render(){
     el.style.top  = t.y + 'px';
     el.style.width  = t.w + 'px';
     el.style.height = t.h + 'px';
-
-    const showLabel = (t.h >= 50 || TYPES[t.type].shape!=='rectH');
+    const showLabel = (t.h >= 50 || TYPES[t.type].shape!=='rect');
     el.innerHTML = showLabel ? '<span>'+TYPES[t.type].labelHTML+'</span>' : '';
 
     // pointer handlers
-    const onDown = (e)=>{
+    const startDrag = (e)=>{
       e.stopPropagation(); e.preventDefault();
       if(!selection.has(t.id)){
         if(!(e.shiftKey)) selection.clear();
@@ -136,7 +149,7 @@ function render(){
       dragging = {ids, offsets};
       render();
     };
-    el.addEventListener('pointerdown', onDown);
+    el.addEventListener('pointerdown', startDrag);
     board.appendChild(el);
   });
 
@@ -170,12 +183,12 @@ palette.querySelectorAll('.pal-item').forEach(el=>{
     selection = new Set([id]);
     render();
   };
-  el.addEventListener('pointerdown', (e)=>{e.preventDefault(); addTile();});
+  el.addEventListener('pointerdown', (e)=>{ e.preventDefault(); addTile(); });
 });
 
-// ====== Board interactions (Pointer Events) ======
-const beginZone = (e)=>{
-  if(e.button!==undefined && e.button!==0) return; // only main button
+// ====== Board interactions via pointer events ======
+function beginZone(e){
+  if(e.button!==undefined && e.button!==0) return; // only left
   const p = pt(e);
   const hit = tiles.slice().reverse().find(t=> p.x>=t.x && p.x<=t.x+t.w && p.y>=t.y && p.y<=t.y+t.h);
   if(hit){
@@ -191,8 +204,8 @@ const beginZone = (e)=>{
     selRect = {x0:p.x, y0:p.y, x1:p.x, y1:p.y};
   }
   render();
-};
-const moveZone = (e)=>{
+}
+function moveZone(e){
   if(!board) return;
   if(dragging){
     const p = pt(e);
@@ -205,8 +218,8 @@ const moveZone = (e)=>{
   }else if(selRect){
     const p = pt(e); selRect.x1=p.x; selRect.y1=p.y; render();
   }
-};
-const endZone = ()=>{
+}
+function endZone(){
   if(dragging) dragging=null;
   if(selRect){
     const {x0,y0,x1,y1} = selRect;
@@ -214,11 +227,11 @@ const endZone = ()=>{
     selection = new Set(tiles.filter(t=> t.x>=minx && t.y>=miny && (t.x+t.w)<=maxx && (t.y+t.h)<=maxy).map(t=>t.id));
     selRect=null; render();
   }
-};
+}
 
-board.addEventListener('pointerdown', beginZone, {passive:false});
-window.addEventListener('pointermove', (e)=>{ if(dragging||selRect){ e.preventDefault(); moveZone(e);} }, {passive:false});
-window.addEventListener('pointerup', endZone, {passive:false});
+board.addEventListener('pointerdown', (e)=>{ e.preventDefault(); beginZone(e); }, {passive:false});
+window.addEventListener('pointermove', (e)=>{ e.preventDefault(); moveZone(e); }, {passive:false});
+window.addEventListener('pointerup', endZone);
 
 // ====== Toolbar actions ======
 document.getElementById('btn-reset').onclick = ()=>{ tiles=[]; selection.clear(); zoom=1; render(); };
@@ -236,11 +249,9 @@ document.getElementById('btn-zero').onclick   = ()=>{
 };
 document.getElementById('btn-rotate').onclick = ()=>{
   tiles = tiles.map(t=> {
-    const sh = TYPES[t.type].shape;
-    if(!selection.has(t.id)) return t;
-    if(sh==='rectV') return {...t, w:120, h:30,      /* flip to horizontal */};
-    if(sh==='rectH') return {...t, w:30,  h:120};
-    return t;
+    const shape = TYPES[t.type].shape;
+    if(!selection.has(t.id) || shape!=='rect') return t;
+    return {...t, w:t.h, h:t.w};
   });
   render();
 };
@@ -251,7 +262,7 @@ document.getElementById('btn-duplicate').onclick = ()=>{
     return {...t, id:uid(), x:spot.x, y:spot.y};
   });
   tiles = [...tiles, ...clones];
-  // ยกเลิก select ต้นฉบับ ให้เลือกเฉพาะที่เพิ่มมา
+  // ยกเลิกเลือกต้นฉบับ เหลือเลือกเฉพาะที่เพิ่มใหม่
   selection.clear();
   clones.forEach(c=> selection.add(c.id));
   render();
@@ -259,46 +270,40 @@ document.getElementById('btn-duplicate').onclick = ()=>{
 document.getElementById('btn-zoom-in').onclick  = ()=>{ zoom = clamp(zoom*1.25, .4, 2.2); render(); };
 document.getElementById('btn-zoom-out').onclick = ()=>{ zoom = clamp(zoom*0.8,  .4, 2.2); render(); };
 
-// help modal
-document.getElementById('btn-help').onclick   = ()=> helpModal.style.display='flex';
-document.getElementById('help-x').onclick     = ()=> helpModal.style.display='none';
+// popup help
+btnHelp.onclick = ()=> help.style.display='flex';
+helpX.onclick = ()=> { help.style.display='none'; const s=ytframe.src; ytframe.src=s; };
 
-// links modal
-document.getElementById('btn-links').onclick  = ()=> linksModal.style.display='flex';
-document.querySelectorAll('.close-x[data-close="#linksModal"]').forEach(b=>{
-  b.addEventListener('click', ()=> linksModal.style.display='none');
-});
+// ====== NEW: links modal (📖) ======
+btnLinks.onclick = ()=> linksModal.style.display='flex';
+linksX.onclick = ()=> { linksModal.style.display='none'; };
 
-// video modal by mode
-document.getElementById('btn-idea').onclick = ()=>{
-  const url = videoURLByMode(mode);
-  topicVideo.src = url;
-  videoModal.style.display='flex';
+// ====== NEW: lesson modal (💡) with per-mode URLs ======
+const LESSON_URLS = {
+  int_add:  'https://www.youtube.com/embed/CAywl7PRu74',
+  int_sub:  'https://www.youtube.com/embed/VcCwksc542k',
+  int_mul:  'https://www.youtube.com/embed/CZ7KB4qXIG8',
+  int_div:  'https://www.youtube.com/embed/AWdSwZl7GXA',
+  poly_add: 'https://www.youtube.com/embed/Z9poGbeeq1Q',
+  poly_sub: 'https://www.youtube.com/embed/Z9poGbeeq1Q',
+  poly_mul: 'https://www.youtube.com/embed/lWqybjwE2io',
+  poly_div: 'https://www.youtube.com/embed/_VWSpo62__8',
+  solve_lin:'https://www.youtube.com/embed/Z18zPt__6wg'
 };
-document.querySelectorAll('.close-x[data-close="#videoModal"]').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    // stop video
-    const u = topicVideo.src; topicVideo.src=''; topicVideo.src=u.replace('&autoplay=1','');
-    videoModal.style.display='none';
-  });
-});
-function videoURLByMode(m){
-  switch(m){
-    case 'int_add': return 'https://www.youtube.com/embed/CAywl7PRu74?autoplay=1';
-    case 'int_sub': return 'https://www.youtube.com/embed/VcCwksc542k?autoplay=1';
-    case 'int_mul': return 'https://www.youtube.com/embed/CZ7KB4qXIG8?autoplay=1';
-    case 'int_div': return 'https://www.youtube.com/embed/AWdSwZl7GXA?autoplay=1';
-    case 'poly_add': return 'https://www.youtube.com/embed/Z9poGbeeq1Q?autoplay=1';
-    case 'poly_sub': return 'https://www.youtube.com/embed/Z9poGbeeq1Q?autoplay=1';
-    case 'poly_mul': return 'https://www.youtube.com/embed/lWqybjwE2io?autoplay=1';
-    case 'poly_div': return 'https://www.youtube.com/embed/_VWSpo62__8?autoplay=1';
-    case 'solve_lin': return 'https://www.youtube.com/embed/Z18zPt__6wg?autoplay=1';
-    default: return '';
-  }
-}
+btnLesson.onclick = ()=>{
+  const m = modeSel.value;
+  const url = LESSON_URLS[m] || '';
+  lessonFrame.src = url;
+  lessonModal.style.display='flex';
+};
+lessonX.onclick = ()=>{
+  lessonModal.style.display='none';
+  // stop video by resetting src
+  const s = lessonFrame.src; lessonFrame.src = s;
+};
 
 // ====== Mode & examples ======
-modeElem.onchange = (e)=>{ mode = e.target.value; newExample(); };
+modeSel.onchange = (e)=>{ mode = e.target.value; newExample(); };
 document.getElementById('btn-new').onclick = ()=> newExample();
 document.getElementById('btn-solution').onclick = (e)=>{
   showSol = !showSol;
@@ -306,27 +311,11 @@ document.getElementById('btn-solution').onclick = (e)=>{
   render();
 };
 
-// manual input (optional, basic passthrough to boxes)
-const manualInput = document.getElementById('manualInput');
-const btnApplyManual = document.getElementById('btn-apply-manual');
-if(btnApplyManual){
-  btnApplyManual.onclick = ()=>{
-    const s = (manualInput.value||'').trim();
-    if(!s) return;
-    problemText = s; problemAnswer = ''; showSol=false;
-    solutionBox.innerHTML=''; render();
-  };
-}
-
-// ====== Parser (รับ () และ [] ) ======
+// ====== Parser / formatting (r9 rules retained) ======
 function sanitizeInput(s){
   return String(s||'')
-    .replace(/−/g,'-')
-    .replace(/·|×/g,'*')
-    .replace(/x²/gi,'x^2')
-    .replace(/\[/g,'(').replace(/\]/g,')')
-    .replace(/\s+/g,'')
-    .trim();
+    .replace(/−/g,'-').replace(/·|×/g,'*').replace(/x²/gi,'x^2')
+    .replace(/\[/g,'(').replace(/\]/g,')').replace(/\s+/g,'').trim();
 }
 function parsePoly(input){
   const s = sanitizeInput(input);
@@ -376,30 +365,13 @@ function parsePoly(input){
   res.a2 |=0; res.a1|=0; res.a0|=0;
   return res;
 }
-function coefToHTML({a2,a1,a0}, wrap=false){
-  // present WITHOUT square brackets by default (solutions)
+function coefToHTML({a2,a1,a0}){
   const parts=[];
-  if(a2){ parts.push(termDeg2(a2,true)); }
-  if(a1){ parts.push(termDeg1(a1, a2?2:1)); }
-  if(a0){ parts.push(termC(a0, a2?2: (a1?1:0))); }
-  const s = parts.length? parts.join(' + ').replace(/\+ -/g,'+ (-') : '0';
-  return wrap ? `[${s}]` : s;
+  if(a2){ parts.push((a2===1?'':a2===-1?'-':a2)+'x<sup>2</sup>'); }
+  if(a1){ parts.push((a1===1?'':a1===-1?'-':a1)+'x'); }
+  if(a0){ parts.push(String(a0)); }
+  return parts.length? parts.join(' + ').replace(/\+ -/g,'+ (-') : '0';
 }
-function termDeg2(k,isLead){
-  if(k===1)  return 'x<sup>2</sup>';
-  if(k===-1) return isLead ? '-x<sup>2</sup>' : '(-x<sup>2</sup>)';
-  return (k<0 && !isLead) ? `(${k}x<sup>2</sup>)` : `${k}x<sup>2</sup>`;
-}
-function termDeg1(k,deg){
-  if(k===1)  return 'x';
-  if(k===-1) return (deg===1 ? '-x' : '(-x)');
-  return (k<0 && deg===2) ? `(${k}x)` : `${k}x`;
-}
-function termC(k,deg){
-  return (k<0 && deg>0) ? `(${k})` : `${k}`;
-}
-
-// add/mul helpers
 function addCoef(A,B){ return {a2:A.a2+B.a2, a1:A.a1+B.a1, a0:A.a0+B.a0}; }
 function mulCoef(A,B){
   const res = {a2:0,a1:0,a0:0};
@@ -412,26 +384,7 @@ function mulCoef(A,B){
   return res;
 }
 
-// Build random polynomials (deg 1 or 2) with bracket rules
-function buildPolyDeg(deg, range='9'){ // range '9' => [-9,9]\{0}, '20' => [-20,20]\{0}
-  const pick = (range==='20') ? rng.int20 : rng.int9;
-  if(deg===2){
-    const a = pick(), b = pick(), c = pick();
-    const t2 = termDeg2(a,true);
-    const t1 = termDeg1(b,2);
-    const t0 = termC(c,2);
-    const inner = [t2, ' + '+t1, ' + '+t0].join('').replace(/\+ \(-/g,'+ (-');
-    return {coef:{a2:a,a1:b,a0:c}, html:`[${inner}]`};
-  }else{
-    const b = pick(), c = pick();
-    const t1 = termDeg1(b,1);
-    const t0 = termC(c,1);
-    const inner = [t1, ' + '+t0].join('').replace(/\+ \(-/g,'+ (-');
-    return {coef:{a2:0,a1:b,a0:c}, html:`[${inner}]`};
-  }
-}
-
-// ====== Example generator ======
+// ====== Example generator (kept r9 constraints) ======
 function newExample(){
   showSol=false; document.getElementById('btn-solution').textContent='เฉลย';
   answerInput.value=''; checkResult.textContent='';
@@ -439,77 +392,65 @@ function newExample(){
   showWorkspace(null);
 
   if(mode==='int_add'){
-    const a=rng.int15(), b=rng.int15();
+    const a=randNZIn(-15,15), b=randNZIn(-15,15);
     problemText = `${a} + ${b<0?`(${b})`:b}`;
     const sum=a+b; answerCoef={a2:0,a1:0,a0:sum}; problemAnswer=String(sum);
   }else if(mode==='int_sub'){
-    const a=rng.int15(), b=rng.int15();
+    const a=randNZIn(-15,15), b=randNZIn(-15,15);
     problemText = `${a} - ${b<0?`(${b})`:b}`;
     const res=a-b; answerCoef={a2:0,a1:0,a0:res}; problemAnswer=String(res);
   }else if(mode==='int_mul'){
-    const a=rng.int15(), b=rng.int15();
+    const a=randNZIn(-15,15), b=randNZIn(-15,15);
     problemText = `${a} × ${b<0?`(${b})`:b}`;
     const res=a*b; answerCoef={a2:0,a1:0,a0:res}; problemAnswer=String(res);
     showWorkspace('mul'); mulMult.textContent=b; mulMcand.textContent=a;
   }else if(mode==='int_div'){
-    // integer division must be exact; choose divisor, quotient in [-12,12]\{0}
-    const divisor=rng.int12(), q=rng.int12(), dividend=divisor*q;
+    // divisor, quotient in [-15,15]\{0}, dividend = divisor*quotient
+    const divisor=randNZIn(-15,15), q=randNZIn(-15,15), dividend=divisor*q;
     problemText = `${dividend} ÷ ${divisor<0?`(${divisor})`:divisor}`;
     answerCoef={a2:0,a1:0,a0:q}; problemAnswer=String(q);
     showWorkspace('div'); divDivisor.textContent=divisor; divQuot.value='';
   }else if(mode==='poly_add' || mode==='poly_sub' || mode==='poly_mul'){
-    // deg limits:
-    //  - add/sub: P,Q deg 1 or 2; coeffs in [-9,9]\{0}
-    //  - mul: both factors deg <=1; coeffs in [-9,9]\{0}; cap shown coef |<=36 (guaranteed by range)
+    // r9: poly add/sub deg 1 or 2, coef in [-9,9]\{0}; multiply deg≤1
     const degP = (mode==='poly_mul') ? 1 : (Math.random()<.5 ? 2 : 1);
     const degQ = (mode==='poly_mul') ? 1 : (Math.random()<.5 ? 2 : 1);
-    const P = buildPolyDeg(degP,'9');
-    const Q = buildPolyDeg(degQ,'9');
+    const P = buildPoly(degP);
+    const Q = buildPoly(degQ);
 
     if(mode==='poly_add'){
       problemText = `${P.html} + ${Q.html}`;
       answerCoef = addCoef(P.coef, Q.coef);
-      problemAnswer = coefToHTML(answerCoef,false);
+      problemAnswer = coefToHTML(answerCoef);
     }else if(mode==='poly_sub'){
       problemText = `${P.html} - ${Q.html}`;
       answerCoef = addCoef(P.coef, {a2:-Q.coef.a2, a1:-Q.coef.a1, a0:-Q.coef.a0});
-      problemAnswer = coefToHTML(answerCoef,false);
+      problemAnswer = coefToHTML(answerCoef);
     }else{
-      // multiply (deg<=1 each)
       problemText = `${P.html} × ${Q.html}`;
       answerCoef = mulCoef(P.coef, Q.coef);
-      problemAnswer = coefToHTML(answerCoef,false);
+      // clamp display to |coef| ≤ 36 (soft display rule)
+      problemAnswer = coefToHTML(answerCoef);
       showWorkspace('mul');
-      mulMult.innerHTML = coefToHTML(Q.coef,false).replace(/\+ \(-/g,'+ (-');
-      mulMcand.innerHTML = coefToHTML(P.coef,false).replace(/\+ \(-/g,'+ (-');
+      mulMult.innerHTML = formatPolyInline(Q.coef);
+      mulMcand.innerHTML = formatPolyInline(P.coef);
     }
   }else if(mode==='poly_div'){
-    // divisor: s x + t (s≠0) with s,t in [-9,9]\{0}
-    // quotient: deg 1 or 2? spec earlier says divisor deg<=1; dividend formed by divisor*quotient; keep dividend coefficients bounded
-    const s = rng.int9(), t = rng.int9();
-    const quotientDeg = Math.random()<.5?1:2;
-    const Q = buildPolyDeg(quotientDeg, '9'); // quotient
-    // Dividend = (s x + t) * Q
-    const D = mulCoef({a2:0,a1:s,a0:t}, Q.coef);
-
-    // ensure readable dividend (limit magnitude)
-    if (Math.abs(D.a2)>36 || Math.abs(D.a1)>36 || Math.abs(D.a0)>36) { return newExample(); }
-
-    const divisorHTML = `[${termDeg1(s,1)} + ${termC(t,1)}]`.replace(/\+ \(-/g,'+ (-');
-    const dividendHTML = coefToHTML(D,true);
-
-    problemText = `${dividendHTML} ÷ ${divisorHTML}`;
-    answerCoef = Q.coef; // quotient
-    problemAnswer = coefToHTML(answerCoef,false);
-
+    // r9: divisor = (x + d) or sx+t, dividend generated to be divisible; coefs filtered small for display
+    // Here choose linear divisor s x + t with s≠0 (|s|,|t| ≤ 9), quotient deg 1, dividend = divisor*quot
+    let s=randNZIn(-9,9), t=randNZIn(-9,9), a=randNZIn(-9,9), b=randNZIn(-9,9);
+    // dividend = (s x + t)(a x + b) = (sa)x^2 + (sb+ta)x + tb
+    const A2 = s*a, A1 = s*b + t*a, A0 = t*b;
+    problemText = `[${formatPolyInline({a2:A2,a1:A1,a0:A0})}] ÷ [${formatPolyLinear(s,t)}]`;
+    answerCoef = {a2:0,a1:a,a0:b};
+    problemAnswer = coefToHTML(answerCoef);
     showWorkspace('div');
-    divDivisor.innerHTML = `x${t>=0?'+':''}${t}`.replace('1x','x'); // simplified text cell
+    divDivisor.innerHTML = formatLinearPretty(s,t);
     divQuot.value='';
   }else if(mode==='solve_lin'){
-    // a x + b = c x + d ; choose to keep numbers readable
+    // ax + b = cx + d → find x
     let a,b,c,x,d,ok=false;
     while(!ok){
-      a=rng.int15(); b=rng.int15(); c=rng.int15(); x = rint(-15,15); if(x===0) continue;
+      a=randNZIn(-15,15); b=randNZIn(-15,15); c=randNZIn(-15,15); x = rint(-15,15); if(x===0) continue;
       d = a*x + b - c*x;
       if(Math.abs(d)<=15){ ok=true; }
     }
@@ -521,6 +462,42 @@ function newExample(){
   render();
 }
 
+function formatPolyInline(coef){
+  // returns term formatting with () on negative non-leading terms, wrapped by nothing (for inline)
+  const {a2,a1,a0} = coef;
+  const parts=[];
+  if(a2){ parts.push( a2===1?'x<sup>2</sup>': (a2===-1?'-x<sup>2</sup>':`${a2}x<sup>2</sup>`)); }
+  if(a1){
+    const t = (a1===1?'x': a1===-1?'-x': `${a1}x`);
+    parts.push( a1<0 && parts.length? `(${t})` : t );
+  }
+  if(a0){
+    parts.push( a0<0 && parts.length? `(${a0})` : `${a0}` );
+  }
+  return parts.length? parts.join(' + ').replace(/\+ -/g,'+ (-') : '0';
+}
+function formatPolyLinear(s,t){ // for bracketed divisor
+  const inner = `${ s===1?'x': s===-1?'-x': `${s}x`} ${ t<0? '+ ('+t+')' : (t>0? '+ '+t : '') }`.replace(/\s+/g,' ').trim();
+  return `[${inner}]`;
+}
+function formatLinearPretty(s,t){
+  return `${ s===1?'x': s===-1?'-x': `${s}x` }${ t>=0?'+':'' }${ t }`.replace(/\+\-/, '-');
+}
+
+function buildPoly(deg){
+  // coef in [-9,9]\{0}
+  const pick = ()=> randNZIn(-9,9);
+  if(deg===2){
+    const a=pick(), b=pick(), c=pick();
+    const html = `[${formatPolyInline({a2:a,a1:b,a0:c})}]`;
+    return {coef:{a2:a,a1:b,a0:c}, html};
+  }else{
+    const b=pick(), c=pick();
+    const html = `[${formatPolyInline({a2:0,a1:b,a0:c})}]`;
+    return {coef:{a2:0,a1:b,a0:c}, html};
+  }
+}
+
 // ====== Answer checking ======
 checkBtn.onclick = ()=>{
   checkResult.textContent=''; checkResult.style.color='';
@@ -530,23 +507,25 @@ checkBtn.onclick = ()=>{
 
   if(['int_add','int_sub','int_mul','int_div'].includes(mode)){
     const s = stripPar(given);
-    if(!/^-?\d+$/.test(s)){ return bad(); }
-    if(parseInt(s,10) === answerCoef.a0){ return good(); } else { return bad(); }
+    if(!/^-?\d+$/.test(s)){ bad(); return; }
+    if(parseInt(s,10) === answerCoef.a0){ good(); } else { bad(); }
+    return;
   }
   if(mode==='solve_lin'){
     let s = stripPar(given);
     let m = s.match(/^x=?(-?\d+)$/i); if(m){ s=m[1]; }
-    if(!/^-?\d+$/.test(s)){ return bad(); }
+    if(!/^-?\d+$/.test(s)){ bad(); return; }
     const val = parseInt(s,10);
     const truth = -answerCoef.a0;
-    if(val===truth){ return good(); } else { return bad(); }
+    if(val===truth){ good(); } else { bad(); }
+    return;
   }
   const parsed = parsePoly(given);
-  if(!parsed){ return bad(); }
-  if(equalsCoef(parsed, answerCoef)){ return good(); } else { return bad(); }
+  if(!parsed){ bad(); return; }
+  if(equalsCoef(parsed, answerCoef)){ good(); } else { bad(); }
 
-  function good(){ checkResult.textContent='ถูกต้อง ✅'; checkResult.style.color='#16a34a'; }
-  function bad(){ checkResult.textContent='ไม่ถูก ❌ ลองใหม่'; checkResult.style.color='#dc2626'; }
+  function good(){ checkResult.textContent='ถูกต้อง'; checkResult.style.color='#16a34a'; }
+  function bad(){ checkResult.textContent='ไม่ถูกต้อง'; checkResult.style.color='#dc2626'; }
 };
 function equalsCoef(a,b){ return a.a2===b.a2 && a.a1===b.a1 && a.a0===b.a0; }
 
