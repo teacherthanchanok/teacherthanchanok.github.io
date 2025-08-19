@@ -1,67 +1,81 @@
 /*
-Version: r10.4
-Changelog:
-- Add light 40px grid background on body
-- Keep toolbar sticky & non-scrollable horizontally (buttons scroll within toolbar only)
-- Modal styles reused; add .link-list
-- Table workspaces kept as display:table/row/cell via .like-table .table-row .table-cell (no inner scrollbars)
+Version: 2025-08-17 r9
+Changelog (from r8):
+- เพิ่มขนาดตัวอักษร select#mode ให้เท่าปุ่ม (.btn)
+- ปรับ responsive ของ workspaces ตารางคูณ/หาร: ให้กล่อง ws เลื่อนแนวนอนได้เมื่อแคบ (แนวทาง responsive-table)
+- ตั้ง min-width ให้ .table2x2 และเปิด inertia scroll (touch)
 */
-
 :root{
   --purple:#6b21a8; --purple-2:#7c3aed; --ink:#111827; --line:#e5e7eb;
-  --blue:#4A7BD9; --green:#4CAF50; --red:#C91C1C; --yellow:#F6D267; --grid:#d7d7d7;
+  --blue:#4A7BD9; --green:#4CAF50; --red:#C91C1C; --yellow:#F6D267;
+  --grid:#d7d7d7;
 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#111;font-size:18px;overflow-x:hidden;
-  /* 40px light grid background */
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:#111;
+  font-size:18px;
+  overflow-x:hidden;
+
   background-size:40px 40px;
   background-image:
     linear-gradient(to right, var(--grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
-  background-color: #fff;
-  background-image:
-    linear-gradient(to right, #e0e0e0 1px, transparent 1px),
-    linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
-  background-size: 40px 40px;
 }
 
 /* Toolbar */
 .toolbar{
-  position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:.6rem;
+  position:sticky;top:0;z-index:10;
+  display:flex;align-items:center;gap:.6rem;
   padding:.6rem .9rem;background:var(--purple);color:#fff;
-  /* fixed, but allow internal x-scroll of content */
-  flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;
+
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
 }
 .brand{font-size:.9rem}
-.btn{border:0;border-radius:.7rem;padding:.55rem 1rem;background:linear-gradient(180deg,#bbd0ff,#b8c0ff);color:#000;cursor:pointer;font-size:1.05rem;white-space:nowrap}
+.btn{
+  border:0;border-radius:.7rem;padding:.55rem 1rem;
+  background:linear-gradient(180deg,#bbd0ff,#b8c0ff);color:#000;
+  cursor:pointer;font-size:1.05rem;white-space:nowrap;
+}
 .btn:hover{filter:brightness(.96)}
-.help-btn{margin-left:0}
+.help-btn{margin-left:auto}
 
-/* select same look as button */
+/* ทำให้ select ดูเท่ากับปุ่ม */
 .toolbar select#mode{
-  font-size:1.05rem;padding:.55rem 1rem;border-radius:.7rem;border:0;background:#e5e7ff;color:#000;white-space:nowrap
+  font-size:1.05rem;
+  padding:.55rem 1rem;
+  border-radius:.7rem;
+  border:0;
+  background:#e5e7ff;
+  color:#000;
 }
 
-/* Problem row */
+/* โซนโจทย์ */
 .row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
-.row-top{padding:.7rem .9rem;border-bottom:1px solid var(--line);background:#fff;font-size:1.2rem}
-.lbl{font-weight:700}
-.prob{font-size:1.35rem}
-.eq{font-size:1.35rem;margin-left:.6rem}
-input[type=text]{font-size:1.1rem;padding:.5rem .65rem;border:1px solid var(--line);border-radius:.5rem;min-width:18rem;background:#fff;color:#111}
-.btn-inline{background:#f3f4f6;color:#111;border:1px solid var(--line)}
+.row-top{
+  padding:.7rem .9rem;border-bottom:1px solid var(--line);
+  background:#fff;font-size:1.2rem;
+}
+.row .lbl{font-weight:700}
+.row .prob{font-size:1.35rem}
+.row .eq{font-size:1.35rem;margin-left:.6rem}
+.row input[type=text]{font-size:1.1rem;padding:.5rem .65rem;border:1px solid var(--line);border-radius:.5rem;min-width:18rem;background:#fff;color:#111}
+.row .btn-inline{background:#f3f4f6;color:#111;border:1px solid var(--line)}
 .solution{margin-left:.6rem}
 .check-msg{min-width:6.5rem}
 
-/* normalize row */
+/* แถว normalize */
 .row-normalize{padding:.25rem .9rem .7rem;background:#fff;border-bottom:1px solid var(--line)}
 #normalizeInput{width:100%;max-width:1100px;border:1px solid var(--line);border-radius:.5rem;padding:.5rem .65rem;font-size:1.05rem;background:#fff;color:#111}
 
 /* Layout */
-.wrap{display:flex;min-height:calc(100vh - 160px)}
+.wrap{display:flex;min-height:calc(100vh - 160px);}
 .palette{width:220px;border-right:1px solid var(--line);padding:12px;background:#f9fafb}
 .pal-title{font-weight:700;margin-bottom:.4rem}
 .pal-item{display:flex;align-items:center;gap:.6rem;padding:.6rem;border:1px solid var(--line);border-radius:.5rem;background:#fff;margin-bottom:.6rem;cursor:grab;font-size:1.05rem}
@@ -74,30 +88,34 @@ input[type=text]{font-size:1.1rem;padding:.5rem .65rem;border:1px solid var(--li
 .chip-negone{width:18px;height:18px;background:var(--red)}
 .pal-note{font-size:1rem;color:#6b7280}
 
-.board-wrap{position:relative;flex:1;overflow:hidden;background:#fff}
+.board-wrap{position:relative;flex:1;overflow:hidden}
 .board{position:absolute;inset:0;transform-origin:0 0;touch-action:none}
-.grid{position:absolute;inset:0}
 .tile{position:absolute;border:2px solid #222;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;user-select:none;color:#000;touch-action:none}
 .tile span{pointer-events:none}
 .selected{outline:3px solid var(--purple-2)}
 .sel-rect{position:absolute;border:2px dashed var(--purple-2);background:rgba(124,58,237,.1)}
 
-/* Workspaces: use div-as-table, no inner scrollbars */
+/* Workspaces + Responsive table approach */
 .ws{
   position:absolute;left:40px;top:40px;right:40px;bottom:40px;
   border:3px solid #cbd5e1;background:#f8fafc;border-radius:10px;display:none;
-  overflow:hidden; /* no inner scrollbars as requested */
+  /* เมื่อจอแคบให้เลื่อนแนวนอนได้ (แนวคิด responsive-table) */
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
 }
 .ws .midline{position:absolute;top:20px;bottom:20px;left:50%;width:3px;background:#94a3b8}
 
-/* div table structure */
-.like-table{display:table;width:100%;height:100%;border:3px solid #94a3b8;border-radius:8px;background:#fff}
-.table-row{display:table-row}
-.table-cell{display:table-cell;vertical-align:middle;border:1px solid #cbd5e1;padding:.25rem;text-align:center}
-.cell{font-weight:700;font-size:1.2rem}
-.cell input{font-size:1.15rem;padding:.4rem .5rem;border:1px solid #cbd5e1;border-radius:.4rem;width:90%;max-width:100%;min-width:0;background:#fff;color:#111}
+/* ตาราง 2x2 แบบ Grid */
+.table2x2{
+  position:absolute;left:40px;top:80px;right:40px;bottom:40px;
+  border:3px solid #94a3b8;border-radius:8px;
+  display:grid;grid-template-columns:180px 1fr;grid-template-rows:160px 1fr;background:#fff;
+  min-width:560px; /* ให้มีความกว้างขั้นต่ำสำหรับเลื่อน */
+}
+.cell{border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;padding:.25rem}
+.cell input{font-size:1.15rem;padding:.4rem .5rem;border:1px solid #cbd5e1;border-radius:.4rem;width:100%;max-width:100%;min-width:0;background:#fff;color:#111}
 
-/* Popup (help + links + lesson) */
+/* Popup */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:40}
 .card{position:relative;background:#fff;border-radius:14px;max-width:780px;width:96%;padding:16px}
 .close-x{position:absolute;right:8px;top:8px;background:#ef4444;border:none;color:#fff;border-radius:999px;width:34px;height:34px;cursor:pointer;font-weight:800}
@@ -108,8 +126,6 @@ input[type=text]{font-size:1.1rem;padding:.5rem .65rem;border:1px solid var(--li
 .credit{font-size:1rem;color:#374151;margin-top:.6rem;text-align:center}
 .contact-row{display:flex;justify-content:center;margin-top:.6rem}
 .contact{display:inline-block}
-.link-list{margin:.6rem 1rem;font-size:1.05rem}
-.link-list li{margin:.25rem 0}
 
 /* Responsive */
 @media (max-width: 900px){
@@ -122,19 +138,69 @@ input[type=text]{font-size:1.1rem;padding:.5rem .65rem;border:1px solid var(--li
   .pal-item{padding:.45rem}
   .row input[type=text]{min-width:12rem}
 }
-/* landscape height-tight */
+/* มือถือแนวนอน / หน้าต่างเตี้ย: กระชับตารางและพิมพ์อ่านง่าย */
 @media (orientation: landscape) and (max-height: 520px){
+  .table2x2{grid-template-columns:140px 1fr;grid-template-rows:120px 1fr;min-width:480px}
   .cell{font-size:1.05rem}
 }
-/* Medium Mobile 360–400px */
-@media screen and (min-width:360px) and (max-width:400px){
-  body{font-size:16px;line-height:1.5}
-  background-color: #fff;
-  background-image:
-    linear-gradient(to right, #e0e0e0 1px, transparent 1px),
-    linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
-  background-size: 40px 40px;
-  .toolbar button,.toolbar select#mode{font-size:15px;padding:10px 14px;min-height:44px;border-radius:10px}
-  input#answerInput{font-size:16px;padding:8px 10px;min-height:40px}
-  #problem{font-size:18px}
+/* (…สไตล์เดิมทั้งหมดของคุณคงเดิม…) */
+
+/* ===== เพิ่มสำหรับปุ่ม/โมดัลใหม่ ===== */
+.link-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0 0;
 }
+.link-list li { margin: 6px 0; }
+
+/* ไม่ให้ลิงก์เปลี่ยนสีหลังคลิก */
+.link-list a,
+.link-list a:visited,
+.link-list a:active {
+  color: #1a73e8;
+  text-decoration: none;
+}
+.link-list a:hover { text-decoration: underline; }
+
+/* ปุ่มไอคอนขนาดเท่าปุ่มอื่น */
+#btn-links,
+#btn-video {
+  min-width: 44px;
+  padding: 8px 10px;
+}
+
+/* iframe ใน popup ให้เป็นอัตราส่วน 16:9 */
+.video-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 840px;
+  margin: 12px auto 0;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.video-wrap iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* modal/card ใช้คลาสเดิมอยู่แล้ว หากมีอยู่แล้วจะถูกใช้ซ้ำ */
+.modal { /* ถ้าของเดิมมีแล้ว สามารถลบส่วนนี้ได้ */
+  position: fixed; inset: 0; display: none;
+  background: rgba(0,0,0,.35);
+  align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal .card {
+  background: #fff; color: #222; max-width: 900px;
+  width: min(92vw, 900px); padding: 16px 16px 20px;
+  border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  position: relative;
+}
+.modal .close-x{
+  position: absolute; right: 10px; top: 8px;
+  border: 0; background: #ef4444; font-size: 24px; cursor: pointer;
+}
+.help-title { font-weight: 700; font-size: 18px; margin-bottom: 8px; }
