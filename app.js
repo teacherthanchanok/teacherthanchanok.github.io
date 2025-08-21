@@ -512,17 +512,37 @@ function newExample(){
     showWorkspace('div');
     divDivisor.innerHTML = coefToHTML(divisor,false);
     divQuot.value='';
-  }else if(mode==='solve_lin'){
-    let a,b,c,x,d,ok=false;
-    while(!ok){
-      a=rNZ15(); b=rNZ15(); c=rNZ15(); x = rint(-15,15); if(x===0) continue;
-      d = a*x + b - c*x;
-      if(Math.abs(d)<=15){ ok=true; }
-    }
-    problemText = `${a===1?'':a===-1?'-':''}x${b>=0?'+':''}${b} = ${c===1?'':c===-1?'-':''}x${d>=0?'+':''}${d}`.replace(/\+\-/g,'-');
-    answerCoef={a2:0,a1:1,a0:-x}; problemAnswer=`x = ${x}`;
-    showWorkspace('solve');
+  
+} else if (mode === 'solve_lin') {
+  // ต้องการ "คำตอบเดียว" -> บังคับ a != c
+  let a, b, c, x, d, ok = false;
+  while (!ok) {
+    a = rNZ15();          // สุ่มสัมประสิทธิ์ x (ฝั่งซ้าย) ∈ [-15,15]\{0}
+    c = rNZ15();          // สุ่มสัมประสิทธิ์ x (ฝั่งขวา) ∈ [-15,15]\{0}
+    if (a === c) continue; // ห้ามเท่ากัน เพื่อให้มีคำตอบเดียวเสมอ
+
+    b = rNZ15();          // ค่าคงที่ฝั่งซ้าย
+    x = rint(-15, 15);    // เฉลย x เป็นจำนวนเต็มช่วงเดียวกัน
+    if (x === 0) continue;
+
+    // คำนวณค่าคงที่ฝั่งขวาให้สอดคล้องกับเฉลยที่ตั้งไว้
+    // จาก: a*x + b = c*x + d  ->  d = (a-c)*x + b
+    d = (a - c) * x + b;
+
+    // จำกัดขนาดพจน์คงที่ไม่ให้หลุดช่วงมากเกินไป (อ่านง่าย)
+    if (Math.abs(d) <= 15) ok = true;
   }
+
+  // แสดงโจทย์ (จัดรูปสวย ๆ เลี่ยง "+-" ให้เป็น "-")
+  const ax = (a === 1 ? '' : a === -1 ? '-' : String(a)) + 'x';
+  const cx = (c === 1 ? '' : c === -1 ? '-' : String(c)) + 'x';
+  problemText = `ถ้า ${ax}${b >= 0 ? '+' : ''}${b} = ${cx}${d >= 0 ? '+' : ''}${d} แล้ว x มีค่า `.replace(/\+\-/g, '-');
+
+  // เฉลย: x = ค่าเดียวที่ตั้งไว้
+  answerCoef = { a2: 0, a1: 1, a0: -x };
+  problemAnswer = `x = ${x}`;
+  showWorkspace('solve');
+}
 
   render();
 }
