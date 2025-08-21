@@ -1,4 +1,4 @@
-/* app.js – keep original logic; add only handlers for 📖 & 💡 */
+/* app.js – keep original logic; add only handlers for 📖 & 💡& แก้ logic การแก้สมการ */
 
 /* ====== โค้ดเดิมทั้งหมดของคุณอยู่ข้างล่าง/ข้างบนนี้ได้ ไม่ต้องแก้ ====== */
 /* ... (your existing logic for generating problems, checking answers, tiles, etc.) ... */
