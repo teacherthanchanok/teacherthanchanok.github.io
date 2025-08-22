@@ -581,3 +581,26 @@ checkBtn.onclick = ()=>{
 document.getElementById('btn-new').focus();
 newExample();
 render();
+
+// -----------------------------
+// ส่วนควบคุม Modal แสดงวิดีโอ
+// -----------------------------
+document.getElementById("btn-video").addEventListener("click", function () {
+  const modal = document.getElementById("videoModal");
+  const frame = document.getElementById("videoFrame");
+
+  // ใส่ลิงก์วิดีโอ YouTube แบบ embed
+  frame.src = "https://www.youtube.com/embed/vpPespGMeJE";
+
+  modal.style.display = "block";
+});
+
+// ปิด modal วิดีโอ
+document.getElementById("video-x").addEventListener("click", function () {
+  const modal = document.getElementById("videoModal");
+  const frame = document.getElementById("videoFrame");
+
+  // เคลียร์ src เพื่อหยุดการเล่นวิดีโอ
+  frame.src = "";
+  modal.style.display = "none";
+});
