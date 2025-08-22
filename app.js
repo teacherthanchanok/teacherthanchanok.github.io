@@ -1,4 +1,4 @@
-/* app.js – keep original logic; add only handlers for 📖 & 💡& แก้ logic การแก้สมการ */
+/* app.js – keep original logic; add only handlers for 📖 & 💡& แก้ logic การแก้สมการ & เปลี่ยนลิ้งค์ยูทูป*/
 
 /* ====== โค้ดเดิมทั้งหมดของคุณอยู่ข้างล่าง/ข้างบนนี้ได้ ไม่ต้องแก้ ====== */
 /* ... (your existing logic for generating problems, checking answers, tiles, etc.) ... */
@@ -39,15 +39,15 @@ const videoFrame = document.getElementById('videoFrame');
 const modeSelect = document.getElementById('mode');
 
 const videoMap = {
-  'int_add' : 'https://www.youtube.com/embed/CAywl7PRu74?si=oohFr4aSHuJNJXMq',
-  'int_sub' : 'https://www.youtube.com/embed/VcCwksc542k?si=iieOZFX83gzbQD4T',
-  'int_mul' : 'https://www.youtube.com/embed/CZ7KB4qXIG8?si=sDwM0cDwLE8XOwwz',
-  'int_div' : 'https://www.youtube.com/embed/AWdSwZl7GXA?si=lR0vUDsG9MTVH0Oy',
-  'poly_add': 'https://www.youtube.com/embed/Z9poGbeeq1Q?si=Xqo6UlrE7l9E8YFa',
-  'poly_sub': 'https://www.youtube.com/embed/Z9poGbeeq1Q?si=Xqo6UlrE7l9E8YFa',
-  'poly_mul': 'https://www.youtube.com/embed/lWqybjwE2io?si=-OW80uiGDH_Nyn7h',
-  'poly_div': 'https://www.youtube.com/embed/_VWSpo62__8?si=KlgGbVjJYBxCJssg',
-  'solve_lin': 'https://www.youtube.com/embed/Z18zPt__6wg?si=WjSRqp_RyGzEF-3J'
+  'int_add' : 'https://youtu.be/0ROjOr4SKfw',
+  'int_sub' : 'https://youtu.be/q33QILkQf0Y',
+  'int_mul' : 'https://youtu.be/TB9OXuxQdCs',
+  'int_div' : 'https://youtu.be/8LDpZCzUoIc',
+  'poly_add': 'https://youtu.be/KmLNBd2RECA',
+  'poly_sub': 'https://youtu.be/dNqJO3qpXXM',
+  'poly_mul': 'https://youtu.be/ZWaF0BxXCZc',
+  'poly_div': 'https://youtu.be/k1J6dBbQCis',
+  'solve_lin': 'https://youtu.be/88jWcKUn2LE'
 };
 
 function currentVideoUrl(){
