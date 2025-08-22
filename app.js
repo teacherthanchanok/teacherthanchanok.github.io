@@ -39,15 +39,15 @@ const videoFrame = document.getElementById('videoFrame');
 const modeSelect = document.getElementById('mode');
 
 const videoMap = {
-  'int_add' : 'https://youtu.be/0ROjOr4SKfw',
-  'int_sub' : 'https://youtu.be/q33QILkQf0Y',
-  'int_mul' : 'https://youtu.be/TB9OXuxQdCs',
-  'int_div' : 'https://youtu.be/8LDpZCzUoIc',
-  'poly_add': 'https://youtu.be/KmLNBd2RECA',
-  'poly_sub': 'https://youtu.be/dNqJO3qpXXM',
-  'poly_mul': 'https://youtu.be/ZWaF0BxXCZc',
-  'poly_div': 'https://youtu.be/k1J6dBbQCis',
-  'solve_lin': 'https://youtu.be/88jWcKUn2LE'
+  'int_add' : 'https://www.youtube.com/watch?v=0ROjOr4SKfw',
+  'int_sub' : 'https://www.youtube.com/watch?v=q33QILkQf0Y',
+  'int_mul' : 'https://www.youtube.com/watch?v=TB9OXuxQdCs',
+  'int_div' : 'https://www.youtube.com/watch?v=8LDpZCzUoIc',
+  'poly_add': 'https://www.youtube.com/watch?v=KmLNBd2RECA',
+  'poly_sub': 'https://www.youtube.com/watch?v=dNqJO3qpXXM&t=2s',
+  'poly_mul': 'https://www.youtube.com/watch?v=ZWaF0BxXCZc&t=1sc',
+  'poly_div': 'https://www.youtube.com/watch?v=k1J6dBbQCis',
+  'solve_lin': 'https://www.youtube.com/watch?v=88jWcKUn2LEE'
 };
 
 function currentVideoUrl(){
